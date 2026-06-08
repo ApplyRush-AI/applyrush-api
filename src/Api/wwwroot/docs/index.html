@@ -1,0 +1,3344 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApplyRush API Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --orange: #f97316;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --radius: 8px;
+      --sidebar-w: 230px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    aside {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo h1 { font-size: 18px; font-weight: 700; color: var(--accent2); }
+    .sidebar-logo span { font-size: 12px; color: var(--muted); }
+
+    .sidebar-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 20px 24px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color .15s, background .15s, border-color .15s;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active { color: var(--accent2); border-left-color: var(--accent2); background: var(--surface2); }
+
+    .nav-count {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--muted);
+    }
+    .nav-item.active .nav-count { background: var(--accent); color: #fff; }
+
+    main {
+      flex: 1;
+      padding: 40px 48px 100px;
+      max-width: 960px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 28px;
+    }
+
+    .intro-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .intro-card strong { color: var(--text); }
+    .intro-card p + p { margin-top: 8px; }
+
+    .endpoint {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .endpoint-header:hover { background: var(--surface2); }
+
+    .method {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 4px;
+      min-width: 62px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .GET    { background: #1d3a1f; color: var(--green); }
+    .POST   { background: #1e2d4a; color: var(--blue); }
+    .PUT    { background: #3a2a0a; color: var(--yellow); }
+    .PATCH  { background: #2a1e10; color: #fb923c; }
+    .DELETE { background: #3a1a1a; color: var(--red); }
+
+    .endpoint-path { font-family: 'Courier New', monospace; font-size: 13px; flex: 1; color: var(--text); }
+    .endpoint-desc { font-size: 13px; color: var(--muted); flex: 1.2; }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+    .badge-open   { background: #1a2e1a; color: var(--green); }
+    .badge-auth   { background: #2a1f0a; color: var(--orange); }
+    .badge-admin  { background: #251a35; color: var(--accent2); }
+    .badge-worker { background: #1a2535; color: var(--blue); }
+
+    .chevron { color: var(--muted); font-size: 12px; transition: transform .2s; flex-shrink: 0; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .endpoint-body { display: none; border-top: 1px solid var(--border); padding: 20px 22px; }
+    .endpoint-body.open { display: block; }
+
+    .purpose { color: var(--muted); margin-bottom: 18px; font-size: 14px; line-height: 1.6; }
+
+    .sub-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 16px 0 8px;
+    }
+    .sub-label:first-child { margin-top: 0; }
+
+    .field-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    .field-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .field-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; }
+    .field-table tr:last-child td { border-bottom: none; }
+    .fn { font-family: monospace; color: var(--accent2); }
+    .ft { color: var(--muted); font-size: 12px; font-family: monospace; }
+    .req { color: var(--red); font-size: 11px; font-weight: 700; }
+    .opt { color: var(--muted); font-size: 11px; }
+
+    pre {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: #a5f3a5;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    .broker-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a2535;
+      border: 1px solid #2e3250;
+      border-radius: 5px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: var(--blue);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<aside>
+  <div class="sidebar-logo">
+    <h1>ApplyRush API</h1>
+    <span>v1 — Internal Reference</span>
+  </div>
+
+  <div class="sidebar-section">Overview</div>
+  <div class="nav-item active" onclick="showTab('overview', this)">Getting Started <span class="nav-count">—</span></div>
+
+  <div class="sidebar-section">Auth</div>
+  <div class="nav-item" onclick="showTab('authenticate', this)">Authenticate <span class="nav-count">7</span></div>
+
+  <div class="sidebar-section">User</div>
+  <div class="nav-item" onclick="showTab('user', this)">User <span class="nav-count">12</span></div>
+  <div class="nav-item" onclick="showTab('session', this)">Sessions <span class="nav-count">2</span></div>
+
+  <div class="sidebar-section">Profile</div>
+  <div class="nav-item" onclick="showTab('profile', this)">Profile <span class="nav-count">6</span></div>
+  <div class="nav-item" onclick="showTab('workexperience', this)">Work Experience <span class="nav-count">7</span></div>
+  <div class="nav-item" onclick="showTab('education', this)">Education <span class="nav-count">4</span></div>
+  <div class="nav-item" onclick="showTab('jobfunction', this)">Job Functions <span class="nav-count">3</span></div>
+  <div class="nav-item" onclick="showTab('city', this)">Cities <span class="nav-count">1</span></div>
+
+  <div class="sidebar-section">Resumes</div>
+  <div class="nav-item" onclick="showTab('resume', this)">Resume <span class="nav-count">6</span></div>
+  <div class="nav-item" onclick="showTab('resumetailoring', this)">Tailoring <span class="nav-count">6</span></div>
+  <div class="nav-item" onclick="showTab('resumeanalysis', this)">Analysis <span class="nav-count">5</span></div>
+
+  <div class="sidebar-section">Jobs</div>
+  <div class="nav-item" onclick="showTab('joboffer', this)">Job Offers <span class="nav-count">3</span></div>
+  <div class="nav-item" onclick="showTab('savedjoboffer', this)">Saved Jobs <span class="nav-count">3</span></div>
+  <div class="nav-item" onclick="showTab('jobapplication', this)">Applications <span class="nav-count">5</span></div>
+
+  <div class="sidebar-section">Other</div>
+  <div class="nav-item" onclick="showTab('notification', this)">Notifications <span class="nav-count">6</span></div>
+  <div class="nav-item" onclick="showTab('settings', this)">Settings <span class="nav-count">4</span></div>
+  <div class="nav-item" onclick="showTab('media', this)">Media <span class="nav-count">3</span></div>
+</aside>
+
+<main>
+
+<!-- ══════════════════ OVERVIEW ══════════════════ -->
+<div id="page-overview" class="page active">
+  <div class="page-title">ApplyRush API — Overview</div>
+  <div class="intro-card">
+    <p><strong>Base URL:</strong> <code>https://api.applyrush.com/api/v1</code></p>
+    <p><strong>Auth:</strong> Bearer JWT in <code>Authorization</code> header. Obtain via <code>POST /authenticate/login</code> or <code>/authenticate/google</code>.</p>
+    <p><strong>Worker endpoints</strong> require a separate <code>X-Api-Key</code> worker header instead of JWT.</p>
+    <p><strong>Admin endpoints</strong> require the <code>Administrator</code> role in the JWT claims.</p>
+  </div>
+  <div class="intro-card">
+    <p><strong>Async flows:</strong> Some actions publish a RabbitMQ message that is consumed by the Worker service. These are noted per endpoint.</p>
+    <p><strong>Pagination:</strong> Paginated endpoints accept <code>pageNumber</code> and <code>pageSize</code> in the body. Response shape is <code>{ items: [], totalCount, pageNumber, pageSize }</code>.</p>
+  </div>
+</div>
+
+<!-- ══════════════════ AUTHENTICATE ══════════════════ -->
+<div id="page-authenticate" class="page">
+  <div class="page-title">Authentication</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/signup</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Create a new user account. Sends a verification email. Account cannot log in until verified.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">firstName</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">lastName</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td>Must be unique</td></tr>
+        <tr><td class="fn">password</td><td class="ft">string</td><td class="req">✓</td><td>Min 8 chars, upper + digit + special</td></tr>
+        <tr><td class="fn">phoneNumber</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — UserResponse</div>
+      <pre>{ "id": 1, "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/login</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Authenticate with email and password. Returns JWT access token + refresh token. Fails if account is unverified, locked, suspended, or inactive.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">username</td><td class="ft">string</td><td class="req">✓</td><td>The user's email address</td></tr>
+        <tr><td class="fn">password</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+      <pre>{ "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com" }, "accessToken": "&lt;jwt&gt;", "refreshToken": "&lt;string&gt;" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/google</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Sign in or register via Google OAuth. New accounts are auto-created (pre-verified + active). Returns same shape as /login.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">idToken</td><td class="ft">string</td><td class="req">✓</td><td>Google ID token from GIS SDK (<code>response.credential</code>)</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — same as /login</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/signout</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Revokes the provided refresh token. The JWT itself remains valid until expiry but the session is invalidated.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">refreshToken</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/authenticate/verify</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Confirms an email verification code. Activates the account so it can log in.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">code</td><td class="ft">string</td><td class="req">✓</td><td>6-digit code from the verification email</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/authenticate/verify/resend-code</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Re-sends the verification email to an unverified account.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/refresh-token</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Exchange a valid refresh token for a new JWT access token (+ rotated refresh token).</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">refreshToken</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — same shape as /login</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ USER ══════════════════ -->
+<div id="page-user" class="page">
+  <div class="page-title">User</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/user/me</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns full details for the authenticated user (id, name, email, roles, status, profile picture URL).</p>
+      <div class="sub-label">Response · 200 — MeResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/user/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns basic info for any user by ID.</p>
+      <div class="sub-label">Response · 200 — UserInfoResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update first name, last name, and phone number for the current user.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">firstName</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">lastName</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">phoneNumber</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — UserResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/change-password</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Change the authenticated user's password. Requires providing the current password.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">currentPassword</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">newPassword</td><td class="ft">string</td><td class="req">✓</td><td>Min 8 chars, upper + digit + special</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/forgot-password</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Sends a password-reset email to the given address (if it exists). Always returns 200 to prevent user enumeration.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/reset-password</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Resets the password using the token from the reset email.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">token</td><td class="ft">string</td><td class="req">✓</td><td>From reset email link</td></tr>
+        <tr><td class="fn">newPassword</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/profile-picture</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Upload a new profile picture. Accepts <code>multipart/form-data</code>. Returns the new media item.</p>
+      <div class="sub-label">Form Field</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">picture</td><td class="ft">IFormFile</td><td class="req">✓</td><td>Image file (jpg/png/webp)</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — MediaItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/activate</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Re-activates the current user's own account (sets status to Active).</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/deactivate</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Deactivates the current user's own account.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/{id}/suspend</span>
+      <span class="badge badge-admin">🛡 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Suspends a user account. Suspended users cannot log in.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">suspensionReason</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/{id}/remove-suspension</span>
+      <span class="badge badge-admin">🛡 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Lifts a suspension from a user account, restoring Active status.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/search</span>
+      <span class="badge badge-admin">🛡 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Full-text search over users (Elasticsearch). Returns paginated results.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">query</td><td class="ft">string?</td><td class="opt">opt</td><td>Free-text search</td></tr>
+        <tr><td class="fn">pageNumber</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">pageSize</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — PaginatedList&lt;UserSearchable&gt;</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SESSIONS ══════════════════ -->
+<div id="page-session" class="page">
+  <div class="page-title">Sessions</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/session</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all active refresh-token sessions for the current user (device info, last used, created at).</p>
+      <div class="sub-label">Response · 200 — SessionListResponse[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/session</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Revokes (deletes) a specific session by refresh token.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">refreshToken</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ PROFILE ══════════════════ -->
+<div id="page-profile" class="page">
+  <div class="page-title">Profile</div>
+  <div class="intro-card">
+    <p>The <strong>UserProfile</strong> is the user's professional profile — work experience, education, skills, and EEO data all live here (not per-resume). Skills and experiences added during resume parsing are merged into the profile.</p>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/profile</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the full profile for the current user including work experiences, educations, skills, and job preferences.</p>
+      <div class="sub-label">Response · 200 — ProfileResponse</div>
+      <pre>{
+  "id": 1,
+  "phone": "+1234567890",
+  "country": "US", "city": "New York", "county": null, "postalCode": "10001", "addressLine1": null,
+  "linkedInUrl": null, "gitHubUrl": null, "websiteUrl": null,
+  "title": "Senior Software Engineer", "bio": null,
+  "yearsExperience": null,
+  "locationMode": { "id": 1, "name": "Specific Location" },
+  "location": "New York, NY",
+  "openToRemote": true,
+  "h1BSponsorship": false,
+  "onboardingCompleted": true,
+  "skills": ["C#", "React"],
+  "workExperiences": [...],
+  "educations": [...]
+}</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update general profile fields. All fields are optional — only provided fields are updated.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">phone</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">country</td><td class="ft">string?</td><td class="opt">opt</td><td>2-letter ISO code</td></tr>
+        <tr><td class="fn">city</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">county</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">postalCode</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">addressLine1</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">linkedInUrl</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">gitHubUrl</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">websiteUrl</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">title</td><td class="ft">string?</td><td class="opt">opt</td><td>Job title / headline</td></tr>
+        <tr><td class="fn">bio</td><td class="ft">string?</td><td class="opt">opt</td><td>Profile summary</td></tr>
+        <tr><td class="fn">locationMode</td><td class="ft">int</td><td class="req">✓</td><td>1=Specific, 2=AnywhereInUs, 3=Remote</td></tr>
+        <tr><td class="fn">location</td><td class="ft">string?</td><td class="opt">opt</td><td>Preferred location label</td></tr>
+        <tr><td class="fn">openToRemote</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">h1BSponsorship</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/onboarding</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Complete the onboarding wizard step 4. Sets <code>onboardingCompleted = true</code>.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">locationMode</td><td class="ft">int</td><td class="req">✓</td><td>1=Specific, 2=AnywhereInUs, 3=Remote</td></tr>
+        <tr><td class="fn">location</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">openToRemote</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">h1BSponsorship</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/job-preferences</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update job search preferences — preferred job functions, job types, location preferences, and work authorization. WorkAuthorization is stored in EeoData but can be set here.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">jobFunctionIds</td><td class="ft">int[]</td><td class="req">✓</td><td>IDs from GET /job-function</td></tr>
+        <tr><td class="fn">jobTypes</td><td class="ft">int[]</td><td class="req">✓</td><td>1=FullTime, 2=PartTime, 3=Contract, 4=Internship</td></tr>
+        <tr><td class="fn">locationMode</td><td class="ft">int</td><td class="req">✓</td><td>1=Specific, 2=AnywhereInUs, 3=Remote</td></tr>
+        <tr><td class="fn">location</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">openToRemote</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">h1BSponsorship</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">workAuthorization</td><td class="ft">int?</td><td class="opt">opt</td><td>1=Citizen, 2=PermanentResident, 3=WorkVisa, 4=StudentVisa, 5=Other</td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/skills</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Replace all profile skills with the provided list (full replace, not merge).</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">skills</td><td class="ft">string[]</td><td class="req">✓</td><td>Ordered list of skill names</td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/eeo</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update Equal Employment Opportunity (EEO) demographic data. All fields are optional. Used for voluntary disclosure.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">workAuthorization</td><td class="ft">int?</td><td class="opt">opt</td><td>1=Citizen…5=Other</td></tr>
+        <tr><td class="fn">sponsorshipNeeded</td><td class="ft">bool?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">disability</td><td class="ft">int?</td><td class="opt">opt</td><td>1=No, 2=Yes, 3=PreferNotToSay</td></tr>
+        <tr><td class="fn">veteranStatus</td><td class="ft">int?</td><td class="opt">opt</td><td>1=NotVeteran, 2=Veteran, 3=ActiveDuty, 4=Reservist</td></tr>
+        <tr><td class="fn">gender</td><td class="ft">int?</td><td class="opt">opt</td><td>1=Male, 2=Female, 3=NonBinary, 4=PreferNotToSay</td></tr>
+        <tr><td class="fn">isLgbtq</td><td class="ft">bool?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">race</td><td class="ft">int?</td><td class="opt">opt</td><td>1=AmericanIndian…8=PreferNotToSay</td></tr>
+        <tr><td class="fn">isHispanicLatino</td><td class="ft">bool?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">sexualOrientation</td><td class="ft">int?</td><td class="opt">opt</td><td>1=Asexual…8=PreferNotToSay</td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/profile/completion</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns a profile completeness score and a list of incomplete sections.</p>
+      <div class="sub-label">Response · 200 — ProfileCompletionResponse</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ WORK EXPERIENCE ══════════════════ -->
+<div id="page-workexperience" class="page">
+  <div class="page-title">Work Experience</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/work-experience</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Add a new work experience entry to the current user's profile.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">jobTitle</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">company</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">jobType</td><td class="ft">int?</td><td class="opt">opt</td><td>1=FullTime, 2=PartTime, 3=Contract, 4=Internship</td></tr>
+        <tr><td class="fn">location</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">startDate</td><td class="ft">DateOnly</td><td class="req">✓</td><td>Format: YYYY-MM-DD</td></tr>
+        <tr><td class="fn">endDate</td><td class="ft">DateOnly?</td><td class="opt">opt</td><td>Null if current</td></tr>
+        <tr><td class="fn">isCurrent</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">summary</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">bullets</td><td class="ft">string[]</td><td class="req">✓</td><td>Can be empty array</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — WorkExperienceItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/work-experience/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update an existing work experience entry. Same fields as POST. ID is from route.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/work-experience/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes a work experience entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/work-experience/reorder</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Reorders all work experience entries by assigning new OrderIndex values based on the provided ID sequence.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">orderedIds</td><td class="ft">int[]</td><td class="req">✓</td><td>All experience IDs in desired order</td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/work-experience/{workExperienceId}/bullets</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Add a bullet point to a work experience entry.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">content</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — WorkExperienceBulletResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/work-experience/{workExperienceId}/bullets/{bulletId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update the content of a bullet point.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">content</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/work-experience/{workExperienceId}/bullets/{bulletId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Deletes a bullet point from a work experience entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ EDUCATION ══════════════════ -->
+<div id="page-education" class="page">
+  <div class="page-title">Education</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/education</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Add a new education entry to the current user's profile.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">school</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">major</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">degreeType</td><td class="ft">int</td><td class="req">✓</td><td>1=Associate, 2=Bachelor, 3=Master, 4=Doctorate, 5=Certificate, 6=Other</td></tr>
+        <tr><td class="fn">gpa</td><td class="ft">decimal?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">startDate</td><td class="ft">DateOnly?</td><td class="opt">opt</td><td>Format: YYYY-MM-DD</td></tr>
+        <tr><td class="fn">endDate</td><td class="ft">DateOnly?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">isCurrent</td><td class="ft">bool</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — EducationItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/education/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update an existing education entry. Same fields as POST.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/education/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes an education entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/education/reorder</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Reorders education entries by assigning new OrderIndex values.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">orderedIds</td><td class="ft">int[]</td><td class="req">✓</td><td>All education IDs in desired order</td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ JOB FUNCTIONS ══════════════════ -->
+<div id="page-jobfunction" class="page">
+  <div class="page-title">Job Functions</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/job-function</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the full 3-level job function taxonomy tree. Used to populate the "Preferred Job Functions" picker in onboarding/settings.</p>
+      <div class="sub-label">Response · 200 — JobFunctionTreeItem[]</div>
+      <pre>[
+  { "id": 10000, "name": "Engineering & Technology", "children": [
+    { "id": 10100, "name": "Software Engineering", "children": [
+      { "id": 10101, "name": "Frontend Development", "children": [] },
+      ...
+    ]}
+  ]}
+]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/job-function</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Create a new job function node.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">name</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">parentId</td><td class="ft">int?</td><td class="opt">opt</td><td>Null for top-level</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/job-function/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Rename a job function node.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">name</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ CITIES ══════════════════ -->
+<div id="page-city" class="page">
+  <div class="page-title">Cities</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/city?search=&amp;limit=</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Search city names from the embedded city dataset. Used for location pickers in the profile / job preferences. Returns up to <code>limit</code> results (default 10).</p>
+      <div class="sub-label">Query Parameters</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">search</td><td class="ft">string?</td><td class="opt">opt</td><td>Partial city name</td></tr>
+        <tr><td class="fn">limit</td><td class="ft">int?</td><td class="opt">opt</td><td>Max results (default 10)</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — string[]</div>
+      <pre>["New York", "New Orleans", "New Haven"]</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ RESUME ══════════════════ -->
+<div id="page-resume" class="page">
+  <div class="page-title">Resume</div>
+  <div class="intro-card">
+    <p>Uploading a resume publishes a <strong>ResumeUploadedMessage</strong> to RabbitMQ. The <strong>Worker</strong> consumes this, downloads the file, calls Claude claude-sonnet-4-5 to extract structured data, and merges the results into the user's profile (skills, work experiences, education, contact info).</p>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume/upload</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Upload a resume file (PDF or DOCX). Stores the file, creates a Resume record with <code>parseStatus = Pending</code>, and triggers async LLM parsing via the Worker.</p>
+      <div class="sub-label">Form Fields (multipart/form-data)</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">file</td><td class="ft">IFormFile</td><td class="req">✓</td><td>.pdf or .docx</td></tr>
+        <tr><td class="fn">name</td><td class="ft">string</td><td class="req">✓</td><td>Display name for the resume</td></tr>
+        <tr><td class="fn">isPrimary</td><td class="ft">bool</td><td class="req">✓</td><td>Set as the primary resume</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — ResumeResponse</div>
+      <pre>{ "id": 7, "name": "Software Engineer Resume", "isPrimary": true, "parseStatus": "Pending", "fileType": "Pdf" }</pre>
+      <div class="broker-note">📨 Publishes <strong>ResumeUploadedMessage</strong> → Worker parses &amp; merges into profile</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all active resumes for the current user.</p>
+      <div class="sub-label">Response · 200 — ResumeResponse[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume/download</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Download the primary resume file as a file stream.</p>
+      <div class="sub-label">Response · 200 — File (application/pdf or application/vnd.openxmlformats-officedocument.wordprocessingml.document)</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/resume/{id}/name</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Rename a resume.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">name</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/resume/{id}/set-primary</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Marks the given resume as primary. Clears the primary flag on all other resumes for the user.</p>
+      <div class="sub-label">Response · 200 — { "primaryResumeId": int }</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/resume/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes a resume. Returns 400 if attempting to delete the primary resume while other active resumes exist.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ RESUME TAILORING ══════════════════ -->
+<div id="page-resumetailoring" class="page">
+  <div class="page-title">Resume Tailoring</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-tailoring</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Create a new AI tailoring of the user's resume for a specific job. Deducts credits.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">resumeId</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">jobOfferId</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — ResumeTailoringResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume-tailoring</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">List all tailoring instances for the current user.</p>
+      <div class="sub-label">Response · 200 — ResumeTailoringListItem[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume-tailoring/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get a specific tailoring by ID.</p>
+      <div class="sub-label">Response · 200 — ResumeTailoringResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-tailoring/{id}/download</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Download the tailored resume as a PDF file.</p>
+      <div class="sub-label">Response · 200 — application/pdf</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/resume-tailoring/{id}/content</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Manually update the content of a tailored resume (e.g., after user edits).</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">content</td><td class="ft">string</td><td class="req">✓</td><td>Full resume content (JSON or structured text)</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-tailoring/{id}/ai-rewrite</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Trigger an AI rewrite of a specific section of the tailored resume.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">section</td><td class="ft">string</td><td class="req">✓</td><td>Section identifier to rewrite</td></tr>
+        <tr><td class="fn">instruction</td><td class="ft">string?</td><td class="opt">opt</td><td>Custom rewrite instruction</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ RESUME ANALYSIS ══════════════════ -->
+<div id="page-resumeanalysis" class="page">
+  <div class="page-title">Resume Analysis</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-analysis</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Trigger an AI analysis of the user's primary resume. Returns a list of improvement suggestions. Deducts credits.</p>
+      <div class="sub-label">Response · 200 — ResumeAnalysisResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume-analysis/latest</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get the most recent analysis for the current user.</p>
+      <div class="sub-label">Response · 200 — ResumeAnalysisResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/resume-analysis/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get a specific analysis by ID.</p>
+      <div class="sub-label">Response · 200 — ResumeAnalysisResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-analysis/{id}/fix</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Apply an AI fix for a specific issue identified in the analysis.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">issueId</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/resume-analysis/{id}/fix-all</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Apply AI fixes for all issues identified in the analysis at once.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ JOB OFFERS ══════════════════ -->
+<div id="page-joboffer" class="page">
+  <div class="page-title">Job Offers</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/job-offer/feed</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get a paginated, personalized job feed based on the user's profile preferences (job functions, job types, location, H1B). Sorted by AI match score.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">pageNumber</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">pageSize</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">filters</td><td class="ft">object?</td><td class="opt">opt</td><td>Optional filter overrides</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — PaginatedList&lt;JobOfferFeedItem&gt;</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/job-offer/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get full details of a specific job offer.</p>
+      <div class="sub-label">Response · 200 — JobOfferDetailResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/job-offer/rebuild-index</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Triggers a background job to rebuild the Elasticsearch index for all job offers. Returns 202 Accepted immediately.</p>
+      <div class="sub-label">Response · 202</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SAVED JOBS ══════════════════ -->
+<div id="page-savedjoboffer" class="page">
+  <div class="page-title">Saved Jobs</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/saved-job-offer</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all jobs the current user has saved/bookmarked.</p>
+      <div class="sub-label">Response · 200 — SavedJobOfferItem[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/saved-job-offer/{jobId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Save/bookmark a job offer. Idempotent — silently succeeds if already saved.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/saved-job-offer/{jobId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Remove a job from the saved list.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ JOB APPLICATIONS ══════════════════ -->
+<div id="page-jobapplication" class="page">
+  <div class="page-title">Job Applications</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/job-application</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all job applications for the current user (Kanban board data).</p>
+      <div class="sub-label">Response · 200 — JobApplicationItem[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/job-application</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Track a new job application.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">jobId</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">stage</td><td class="ft">int</td><td class="req">✓</td><td>Application stage enum value</td></tr>
+        <tr><td class="fn">note</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — JobApplicationResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span>
+      <span class="endpoint-path">/job-application/{jobId}/stage</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Move an application to a different Kanban stage.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">stage</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PATCH">PATCH</span>
+      <span class="endpoint-path">/job-application/{jobId}/note</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update the note on a job application.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">note</td><td class="ft">string?</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/job-application/{jobId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Remove a job application from the tracker.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ NOTIFICATIONS ══════════════════ -->
+<div id="page-notification" class="page">
+  <div class="page-title">Notifications</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/notification/count/unread</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the unread notification count for the current user. Useful for badge indicators.</p>
+      <div class="sub-label">Response · 200 — { "count": int }</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/notification/search/user</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Full-text search over notifications for the current user. Paginated.</p>
+      <div class="sub-label">Request Body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Req</th><th>Notes</th></tr>
+        <tr><td class="fn">query</td><td class="ft">string?</td><td class="opt">opt</td><td></td></tr>
+        <tr><td class="fn">pageNumber</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+        <tr><td class="fn">pageSize</td><td class="ft">int</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — PaginatedList&lt;NotificationSearchable&gt;</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/{id}/change-status</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Change the status of a notification (e.g., mark as read).</p>
+      <div class="sub-label">Request Body — NotificationStatus (int)</div>
+      <table class="field-table">
+        <tr><th>Value</th><th>Meaning</th></tr>
+        <tr><td class="fn">1</td><td>Unread</td></tr>
+        <tr><td class="fn">2</td><td>Read</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/user/mark-all-as-read</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Marks all notifications for the current user as read.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/notification/lookup/status</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all notification status enum values as id/name pairs.</p>
+      <div class="sub-label">Response · 200 — ListItemBaseResponse[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/search/rebuild</span>
+      <span class="badge badge-admin">🛡 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Trigger a full rebuild of the notification Elasticsearch index.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SETTINGS ══════════════════ -->
+<div id="page-settings" class="page">
+  <div class="page-title">Settings</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/settings/notifications</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the current user's notification preferences.</p>
+      <div class="sub-label">Response · 200 — NotificationPreferenceResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/settings/notifications</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update notification preferences (email notifications, push, etc.).</p>
+      <div class="sub-label">Request Body — NotificationPreferenceUpdateCommand fields</div>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/settings/job-preferences</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the user's saved job alert preferences.</p>
+      <div class="sub-label">Response · 200 — JobPreferenceResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/settings/job-preferences</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update job alert preferences (e.g., alert frequency, keywords).</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MEDIA ══════════════════ -->
+<div id="page-media" class="page">
+  <div class="page-title">Media</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/{mediaEntityType}/{entityId}/{mediaItemId}/download</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Download a media file (profile picture, resume, etc.) by entity type, entity ID, and media item ID.</p>
+      <div class="sub-label">Route Parameters</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th><th>Notes</th></tr>
+        <tr><td class="fn">mediaEntityType</td><td class="ft">MediaEntityType</td><td>Enum: User, Resume, …</td></tr>
+        <tr><td class="fn">entityId</td><td class="ft">int</td><td></td></tr>
+        <tr><td class="fn">mediaItemId</td><td class="ft">Guid</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — File stream</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/{mediaEntityType}/{entityId}/{mediaItemId}/download/worker</span>
+      <span class="badge badge-worker">⚙ Worker</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Worker-only endpoint to download media. Uses X-Api-Key authentication instead of JWT. Returns raw stream.</p>
+      <div class="sub-label">Response · 200 — Stream</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/entity-types</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all media entity type enum values as id/name pairs.</p>
+      <div class="sub-label">Response · 200 — ListItemBaseResponse[]</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+  function showTab(name, el) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.getElementById('page-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+
+  function toggle(header) {
+    var body = header.nextElementSibling;
+    var chevron = header.querySelector('.chevron');
+    var isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --accent2: #a78bfa;
+      --green: #22c55e;
+      --yellow: #eab308;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --orange: #f97316;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --code-bg: #0d1117;
+      --radius: 8px;
+      --sidebar-w: 220px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.7;
+      display: flex;
+    }
+
+    /* ── Sidebar ───────────────────────────────── */
+    aside {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo h1 { font-size: 18px; font-weight: 700; color: var(--accent2); }
+    .sidebar-logo span { font-size: 12px; color: var(--muted); }
+
+    .sidebar-section {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 20px 24px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      transition: color .15s, background .15s, border-color .15s;
+      user-select: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active { color: var(--accent2); border-left-color: var(--accent2); background: var(--surface2); }
+
+    .nav-count {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--muted);
+    }
+    .nav-item.active .nav-count { background: var(--accent); color: #fff; }
+
+    /* ── Main ──────────────────────────────────── */
+    main {
+      flex: 1;
+      padding: 40px 48px 100px;
+      max-width: 920px;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 28px;
+    }
+
+    .intro-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .intro-card strong { color: var(--text); }
+    .intro-card p + p { margin-top: 8px; }
+
+    /* ── Endpoint card ───────────────────────────── */
+    .endpoint {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 15px 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .endpoint-header:hover { background: var(--surface2); }
+
+    .method {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 4px;
+      min-width: 58px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .GET    { background: #1d3a1f; color: var(--green); }
+    .POST   { background: #1e2d4a; color: var(--blue); }
+    .PUT    { background: #3a2a0a; color: var(--yellow); }
+    .DELETE { background: #3a1a1a; color: var(--red); }
+
+    .endpoint-path { font-family: 'Courier New', monospace; font-size: 14px; flex: 1; }
+
+    .badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+    .badge-open   { background: #1a2e1a; color: var(--green); }
+    .badge-auth   { background: #2a1f0a; color: var(--orange); }
+    .badge-admin  { background: #251a35; color: var(--accent2); }
+    .badge-worker { background: #1a2535; color: var(--blue); }
+
+    .chevron { color: var(--muted); font-size: 12px; transition: transform .2s; flex-shrink: 0; }
+    .chevron.open { transform: rotate(180deg); }
+
+    .endpoint-body { display: none; border-top: 1px solid var(--border); padding: 20px 22px; }
+    .endpoint-body.open { display: block; }
+
+    .purpose { color: var(--muted); margin-bottom: 18px; font-size: 15px; }
+
+    .sub-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 16px 0 8px;
+    }
+    .sub-label:first-child { margin-top: 0; }
+
+    .field-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    .field-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .field-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: top; }
+    .field-table tr:last-child td { border-bottom: none; }
+    .fn { font-family: monospace; color: var(--accent2); }
+    .ft { color: var(--muted); font-size: 12px; font-family: monospace; }
+    .req { color: var(--red); font-size: 12px; }
+    .opt { color: var(--muted); font-size: 12px; }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c9d1d9;
+      margin-bottom: 4px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────── -->
+<aside>
+  <div class="sidebar-logo">
+    <h1>ApplyRush API</h1>
+    <span>v1 &nbsp;·&nbsp; REST</span>
+  </div>
+
+  <div class="sidebar-section">Documentation</div>
+  <div class="nav-item active" onclick="showTab('overview')">Overview</div>
+
+  <div class="sidebar-section">Controllers</div>
+  <div class="nav-item" onclick="showTab('auth')">
+    Authentication <span class="nav-count">7</span>
+  </div>
+  <div class="nav-item" onclick="showTab('users')">
+    User <span class="nav-count">13</span>
+  </div>
+  <div class="nav-item" onclick="showTab('notifications')">
+    Notification <span class="nav-count">6</span>
+  </div>
+  <div class="nav-item" onclick="showTab('media')">
+    Media <span class="nav-count">3</span>
+  </div>
+  <div class="nav-item" onclick="showTab('profile')">
+    Profile <span class="nav-count">6</span>
+  </div>
+  <div class="nav-item" onclick="showTab('workexperience')">
+    Work Experience <span class="nav-count">7</span>
+  </div>
+  <div class="nav-item" onclick="showTab('education')">
+    Education <span class="nav-count">4</span>
+  </div>
+  <div class="nav-item" onclick="showTab('jobfunctions')">
+    Job Functions <span class="nav-count">3</span>
+  </div>
+  <div class="nav-item" onclick="showTab('settings')">
+    Settings <span class="nav-count">4</span>
+  </div>
+  <div class="nav-item" onclick="showTab('sessions')">
+    Sessions <span class="nav-count">2</span>
+  </div>
+  <div class="nav-item" onclick="showTab('account')">
+    Account <span class="nav-count">2</span>
+  </div>
+  <div class="nav-item" onclick="showTab('jobs')">
+    Jobs <span class="nav-count">2</span>
+  </div>
+  <div class="nav-item" onclick="showTab('savedjobs')">
+    Saved Jobs <span class="nav-count">3</span>
+  </div>
+  <div class="nav-item" onclick="showTab('applications')">
+    Applications <span class="nav-count">5</span>
+  </div>
+  <div class="nav-item" onclick="showTab('resume')">
+    Resume <span class="nav-count">6</span>
+  </div>
+</aside>
+
+<!-- ── Main content ────────────────────────── -->
+<main>
+
+<!-- OVERVIEW -->
+<div class="page active" id="page-overview">
+  <div class="page-title">Getting Started</div>
+
+  <div class="intro-card">
+    <p><strong>Base URL</strong> &mdash; <code>http://localhost:5000/api/v1</code></p>
+    <p><strong>Content-Type</strong> &mdash; <code>application/json</code> for all body requests (file uploads use <code>multipart/form-data</code>).</p>
+    <p><strong>API version</strong> &mdash; always <code>v1</code>, included in every path.</p>
+  </div>
+
+  <div class="intro-card">
+    <p><strong>Bearer auth</strong> &mdash; Protected endpoints require:</p>
+    <pre>Authorization: Bearer &lt;access_token&gt;</pre>
+    <p style="margin-top:10px">Get a token from <code>POST /authenticate/login</code> or <code>POST /authenticate/google</code>. When it expires, call <code>POST /authenticate/refresh-token</code>.</p>
+  </div>
+
+  <div class="intro-card">
+    <p><strong>Localization</strong> &mdash; Pass <code>Language: en-US</code> header to control error message language.</p>
+  </div>
+
+  <div class="intro-card">
+    <p><strong>Error shape</strong></p>
+    <pre>{ "status": 400, "title": "Validation error", "errors": { "email": ["Email is required"] } }
+
+// 401 / 403 / 500:
+{ "status": 401, "title": "Unauthorized", "detail": "Account not verified" }</pre>
+  </div>
+
+  <div class="intro-card">
+    <p><strong>Access levels</strong></p>
+    <p style="margin-top:10px">
+      <span class="badge badge-open">Public</span> &nbsp; No token needed &nbsp;&nbsp;&nbsp;
+      <span class="badge badge-auth">🔒 Auth</span> &nbsp; Bearer JWT required &nbsp;&nbsp;&nbsp;
+      <span class="badge badge-admin">👑 Admin</span> &nbsp; Admin role required &nbsp;&nbsp;&nbsp;
+      <span class="badge badge-worker">⚙ Worker</span> &nbsp; Internal worker token
+    </p>
+  </div>
+</div>
+
+<!-- AUTHENTICATION -->
+<div class="page" id="page-auth">
+  <div class="page-title">Authentication</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/signup</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Register a new customer account. Sends a verification email. Also auto-creates a UserProfile, notification preferences, and job preferences. The account cannot log in until email is verified via <code>PUT /authenticate/verify</code>.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+        <tr><td class="fn">firstName</td><td class="ft">string</td><td class="req">✓</td><td>Max 20 chars</td></tr>
+        <tr><td class="fn">lastName</td><td class="ft">string</td><td class="req">✓</td><td>Max 20 chars</td></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td><td>Must be unique</td></tr>
+        <tr><td class="fn">password</td><td class="ft">string</td><td class="req">✓</td><td>Min 8 chars, uppercase + digit + special</td></tr>
+        <tr><td class="fn">phoneNumber</td><td class="ft">string?</td><td class="opt">optional</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — UserResponse</div>
+      <pre>{ "id": 1, "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/login</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Authenticate with email + password. Returns an access token (JWT), refresh token, and basic user info. Fails if account is unverified, locked, suspended, or inactive.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+        <tr><td class="fn">username</td><td class="ft">string</td><td class="req">✓</td><td>The user's email address</td></tr>
+        <tr><td class="fn">password</td><td class="ft">string</td><td class="req">✓</td><td></td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+      <pre>{
+  "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com", "initials": "JD" },
+  "accessToken": "&lt;jwt&gt;",
+  "refreshToken": "&lt;opaque string&gt;"
+}</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/google</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Sign in or register via Google OAuth. Pass the Google ID token from the GIS SDK. New accounts are auto-created (pre-verified + active). Returns the same shape as <code>/login</code>.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+        <tr><td class="fn">idToken</td><td class="ft">string</td><td class="req">✓</td><td>Google ID token from GIS SDK (<code>response.credential</code>)</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+      <pre>{
+  "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com", "initials": "JD" },
+  "accessToken": "&lt;jwt&gt;",
+  "refreshToken": "&lt;opaque string&gt;"
+}</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/signout</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Revoke the provided refresh token. Call on logout to invalidate the current session. Other device sessions are unaffected.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+        <tr><td class="fn">refreshToken</td><td class="ft">string</td><td class="req">✓</td></tr>
+      </table>
+      <div class="sub-label">Response · 204 No Content</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/authenticate/refresh-token</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Exchange an expired access token + valid refresh token for a fresh token pair. The old refresh token is deleted; a new one is issued. Use in your HTTP client's 401 interceptor.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr>
+        <tr><td class="fn">accessToken</td><td class="ft">string</td><td class="req">✓</td><td>The expired JWT (needed to identify the user)</td></tr>
+        <tr><td class="fn">refreshToken</td><td class="ft">string</td><td class="req">✓</td><td>Max 200 chars</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — same shape as <code>/login</code></div>
+      <pre>{
+  "user": { "id": 1, "name": "Jane Doe", "email": "jane@example.com", "initials": "JD" },
+  "accessToken": "&lt;new jwt&gt;",
+  "refreshToken": "&lt;new opaque string&gt;"
+}</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/authenticate/verify</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Verify a user's email using the 6-digit code sent after signup.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td></tr>
+        <tr><td class="fn">code</td><td class="ft">string</td><td class="req">✓</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/authenticate/verify/resend-code</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Resend the verification code email when the original code expired or wasn't received.</p>
+      <div class="sub-label">Request body</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+        <tr><td class="fn">email</td><td class="ft">string</td><td class="req">✓</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- USER -->
+<div class="page" id="page-users">
+  <div class="page-title">User</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/user/me</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the full profile of the currently authenticated user including profile picture URL and creation date.</p>
+      <div class="sub-label">Response · 200 — MeResponse</div>
+      <pre>{ "id": 1, "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com", "profilePicture": "https://...", "dateCreated": "2026-01-01T00:00:00Z" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/user/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Fetch detailed info for a specific user by ID.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th></tr>
+        <tr><td class="fn">id</td><td class="ft">int</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — UserInfoResponse</div>
+      <pre>{ "id": 1, "firstName": "Jane", "lastName": "Doe", "email": "jane@example.com", "status": "Active" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update the current user's own profile (name, phone, etc.).</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "firstName": "Jane", "lastName": "Smith", "phoneNumber": "+1234567890" }</pre>
+      <div class="sub-label">Response · 200 — UserResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/{customerId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Update a specific customer's basic info by ID.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th></tr>
+        <tr><td class="fn">customerId</td><td class="ft">int</td></tr>
+      </table>
+      <div class="sub-label">Request body</div>
+      <pre>{ "firstName": "Jane", "lastName": "Smith", "phoneNumber": "+1234567890" }</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/change-password</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Change the authenticated user's password. Current password required for verification.</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "currentPassword": "OldPass1!", "newPassword": "NewPass2@" }</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/profile-picture</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Upload or replace the current user's profile picture. Use <code>multipart/form-data</code>.</p>
+      <div class="sub-label">Form fields</div>
+      <table class="field-table">
+        <tr><th>Field</th><th>Type</th><th>Required</th></tr>
+        <tr><td class="fn">picture</td><td class="ft">file</td><td class="req">✓</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — MediaItemResponse</div>
+      <pre>{ "id": "...", "url": "https://...", "contentType": "image/jpeg" }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/activate</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Set the current user's status to <code>Active</code>. Used to reactivate a self-deactivated account.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/deactivate</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Set the current user's status to <code>Deactivated</code>. The account cannot log in until reactivated.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/forgot-password</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Send a password reset email. Always returns 200 even if the email doesn't exist (prevents user enumeration).</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "email": "jane@example.com" }</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/reset-password</span>
+      <span class="badge badge-open">Public</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Complete the password reset using the token from the reset email.</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "email": "jane@example.com", "token": "&lt;reset token from email&gt;", "newPassword": "NewPass2@" }</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/{id}/suspend</span>
+      <span class="badge badge-admin">👑 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Suspend a user account. The user gets a 401 Suspended error on next login attempt.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th></tr>
+        <tr><td class="fn">id</td><td class="ft">int</td></tr>
+      </table>
+      <div class="sub-label">Request body</div>
+      <pre>{ "suspensionReason": "Violation of terms of service" }</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/user/{id}/remove-suspension</span>
+      <span class="badge badge-admin">👑 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Lift a suspension, restoring the user's ability to log in.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th></tr>
+        <tr><td class="fn">id</td><td class="ft">int</td></tr>
+      </table>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/user/search</span>
+      <span class="badge badge-admin">👑 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Full-text search across all users with pagination and sorting. Backed by Elasticsearch.</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "query": "jane", "page": 1, "pageSize": 20, "sortBy": "createdAt", "sortOrder": "desc" }</pre>
+      <div class="sub-label">Response · 200 — PaginatedList</div>
+      <pre>{ "items": [...], "totalCount": 50, "page": 1, "pageSize": 20 }</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="page" id="page-notifications">
+  <div class="page-title">Notification</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/notification/count/unread</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Get the count of unread notifications for the current user. Use for badge counts in the UI.</p>
+      <div class="sub-label">Response · 200</div>
+      <pre>{ "count": 5 }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/notification/lookup/status</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all notification status enum values with localized labels. Use to populate filter dropdowns.</p>
+      <div class="sub-label">Response · 200</div>
+      <pre>[{ "value": "Read", "label": "Read" }, { "value": "Unread", "label": "Unread" }]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/notification/search/user</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Full-text search through the current user's notifications with pagination, sorting, and optional status filter.</p>
+      <div class="sub-label">Request body</div>
+      <pre>{ "query": "interview", "status": "Unread", "page": 1, "pageSize": 20 }</pre>
+      <div class="sub-label">Response · 200 — PaginatedList</div>
+      <pre>{ "items": [{ "id": 1, "title": "...", "body": "...", "status": "Unread", "createdAt": "..." }], "totalCount": 12 }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/{id}/change-status</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Mark a single notification as read or unread.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th></tr>
+        <tr><td class="fn">id</td><td class="ft">int</td></tr>
+      </table>
+      <div class="sub-label">Request body — plain enum string</div>
+      <pre>"Read"   // or "Unread"</pre>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/user/mark-all-as-read</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Mark all notifications for the current user as read in one call.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/notification/search/rebuild</span>
+      <span class="badge badge-admin">👑 Admin</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Trigger a full rebuild of the notification search index in Elasticsearch. Use after bulk data changes or index corruption.</p>
+      <div class="sub-label">Response · 200</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MEDIA -->
+<div class="page" id="page-media">
+  <div class="page-title">Media</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/{mediaEntityType}/{entityId}/{mediaItemId}/download</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Stream-download a media file by its entity type, entity ID, and media item ID. The response is the raw file with the correct <code>Content-Type</code>.</p>
+      <div class="sub-label">Path params</div>
+      <table class="field-table">
+        <tr><th>Param</th><th>Type</th><th>Notes</th></tr>
+        <tr><td class="fn">mediaEntityType</td><td class="ft">enum</td><td>See <code>GET /media/entity-types</code> for valid values</td></tr>
+        <tr><td class="fn">entityId</td><td class="ft">int</td><td>ID of the owning entity</td></tr>
+        <tr><td class="fn">mediaItemId</td><td class="ft">Guid</td><td>ID of the media item</td></tr>
+      </table>
+      <div class="sub-label">Response · 200 — binary file stream</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/entity-types</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all valid <code>mediaEntityType</code> enum values with localized labels. Use these as path params in download calls.</p>
+      <div class="sub-label">Response · 200</div>
+      <pre>[{ "value": "UserProfile", "label": "User Profile" }, ...]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/media/{mediaEntityType}/{entityId}/{mediaItemId}/download/worker</span>
+      <span class="badge badge-worker">⚙ Worker</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Internal endpoint for background workers to download media. Requires a worker auth token rather than a user Bearer JWT.</p>
+      <div class="sub-label">Response · 200 — binary file stream</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="page-profile">
+  <div class="page-title">Profile</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/profile</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the current user's full profile including skills, work experiences, and education.</p>
+      <div class="sub-label">Response · 200 — ProfileResponse</div>
+      <pre>{ "id": 1, "title": "Software Engineer", "bio": "...", "skills": ["React","Node.js"], "workExperiences": [...], "educations": [...], "openToRemote": true, "h1bSponsorship": false, "onboardingCompleted": true }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates the current user's profile fields (phone, address, linkedInUrl, websiteUrl, title, bio, location, openToRemote, h1bSponsorship).</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "phone": "+1234567890", "title": "Engineer", "bio": "...", "location": "New York", "openToRemote": true, "h1bSponsorship": false }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/onboarding</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Completes onboarding — sets job function preferences, job types, location, and marks onboarding as completed.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "jobFunctionIds": [1, 2], "jobTypes": ["FullTime", "Contract"], "location": "Remote", "openToRemote": true, "h1bSponsorship": false }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/skills</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Replaces all current user skills with the provided list (ordered).</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "skills": ["React", "TypeScript", "Node.js"] }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/profile/eeo</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates Equal Employment Opportunity (EEO) data. All fields are optional.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "workAuthorization": "Citizen", "sponsorshipNeeded": false, "disability": "No", "veteranStatus": "NotVeteran", "gender": "Male", "isLgbtq": false, "race": "Asian", "isHispanicLatino": false, "sexualOrientation": null }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/profile/completion</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns profile completion percentage and breakdown by section.</p>
+      <div class="sub-label">Response · 200 — ProfileCompletionResponse</div>
+      <pre>{ "percentage": 80, "breakdown": { "personal": true, "experience": true, "education": true, "skills": true, "eeo": false } }</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- WORK EXPERIENCE -->
+<div class="page" id="page-workexperience">
+  <div class="page-title">Work Experience</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/workexperience</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Creates a new work experience entry for the current user.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "jobTitle": "Software Engineer", "company": "Acme Inc", "jobType": "FullTime", "location": "New York", "startDate": "2022-01-01", "endDate": null, "isCurrent": true, "summary": "Built features..." }</pre>
+      <div class="sub-label">Response · 200 — WorkExperienceItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/workexperience/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates an existing work experience entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/workexperience/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes a work experience entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/workexperience/reorder</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Reorders work experience entries by providing an ordered list of IDs.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "orderedIds": [3, 1, 2] }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/workexperience/{workExperienceId}/bullets</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Adds a bullet point to a work experience entry.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "content": "Led a team of 5 engineers to deliver a new microservices platform." }</pre>
+      <div class="sub-label">Response · 200 — WorkExperienceBulletResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/workexperience/{workExperienceId}/bullets/{bulletId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates a bullet point content.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "content": "Updated bullet content." }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/workexperience/{workExperienceId}/bullets/{bulletId}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Permanently deletes a bullet point.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EDUCATION -->
+<div class="page" id="page-education">
+  <div class="page-title">Education</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/education</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Creates a new education entry for the current user.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "school": "MIT", "major": "Computer Science", "degreeType": "Bachelor", "gpa": 3.8, "startDate": "2018-09-01", "endDate": "2022-05-01", "isCurrent": false }</pre>
+      <div class="sub-label">Response · 200 — EducationItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/education/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates an existing education entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/education/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes an education entry.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/education/reorder</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Reorders education entries by providing an ordered list of IDs.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "orderedIds": [2, 1] }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- JOB FUNCTIONS -->
+<div class="page" id="page-jobfunctions">
+  <div class="page-title">Job Functions</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/jobfunction</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all active job functions as a tree (parent → children). Public endpoint.</p>
+      <div class="sub-label">Response · 200</div>
+      <pre>[{ "id": 1, "name": "Engineering", "parentId": null, "children": [{ "id": 2, "name": "Frontend", ... }] }]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method POST">POST</span>
+      <span class="endpoint-path">/jobfunction</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Creates a new job function (admin use).</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "name": "Backend", "parentId": 1 }</pre>
+      <div class="sub-label">Response · 200 — JobFunctionItemResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/jobfunction/{id}</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates a job function's name or parent.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "name": "Backend Engineering", "parentId": 1 }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="page-title">Settings</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/settings/notifications</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the current user's notification preferences.</p>
+      <div class="sub-label">Response · 200 — NotificationPreferenceResponse</div>
+      <pre>{ "newJobMatches": true, "applicationUpdates": true, "weeklyDigest": true, "profileViews": false, "marketingEmails": false }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/settings/notifications</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates notification preferences. All fields are optional (partial update).</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "newJobMatches": false, "marketingEmails": true }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/settings/job-preferences</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the current user's job search preferences.</p>
+      <div class="sub-label">Response · 200 — JobPreferenceResponse</div>
+      <pre>{ "desiredTitle": "Senior Engineer", "salaryMin": 120000, "locations": "New York, Remote", "workModel": { "id": 1, "name": "Remote" }, "industryWeights": null }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method PUT">PUT</span>
+      <span class="endpoint-path">/settings/job-preferences</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates job search preferences.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "desiredTitle": "Staff Engineer", "salaryMin": 150000, "locations": "San Francisco", "workModel": "Hybrid" }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SESSIONS -->
+<div class="page" id="page-sessions">
+  <div class="page-title">Sessions</div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method GET">GET</span>
+      <span class="endpoint-path">/session</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all active (non-expired) refresh token sessions for the current user, ordered by most recently used.</p>
+      <div class="sub-label">Response · 200 — SessionResponse[]</div>
+      <pre>[{ "token": "abc...", "deviceInfo": "Chrome/Windows", "ipAddress": "192.168.1.1", "lastUsedAt": "2024-01-15T10:30:00Z", "expiryTime": "2024-02-15T10:30:00Z" }]</pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method DELETE">DELETE</span>
+      <span class="endpoint-path">/session</span>
+      <span class="badge badge-auth">🔒 Auth</span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Revokes a specific session by its refresh token value.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "token": "abc..." }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ACCOUNT -->
+<div class="page" id="page-account">
+  <div class="page-title">Account</div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method delete">DELETE</span>
+      <span class="path">/account</span>
+      <span class="summary">Delete account</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Permanently deletes the authenticated user's account and all associated data. Irreversible.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "password": "string" }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/account/export</span>
+      <span class="summary">Export account data (GDPR)</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns a ZIP archive containing JSON files for profile, applications, saved jobs, settings, and credit history.</p>
+      <div class="sub-label">Response · 200 · application/zip</div>
+      <pre>account-data-export.zip</pre>
+    </div>
+  </div>
+
+</div>
+
+<!-- JOBS -->
+<div class="page" id="page-jobs">
+  <div class="page-title">Jobs</div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/job</span>
+      <span class="summary">Get job feed (paginated)</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns a paginated list of active job listings filtered and sorted by the given parameters. Lazily computes match scores.</p>
+      <div class="sub-label">Query Params</div>
+      <pre>page, pageSize, sortBy (Recommended|Date|Match), q, jobTypes[], workModel, experienceLevel, salaryMin, industry</pre>
+      <div class="sub-label">Response · 200</div>
+      <pre>{ "items": [ JobFeedItemResponse ], "totalCount": 120 }</pre>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/job/{id}</span>
+      <span class="summary">Get job detail</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns full job details including description sections, required skills, and lazy match score.</p>
+      <div class="sub-label">Response · 200 · JobDetailResponse</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SAVED JOBS -->
+<div class="page" id="page-savedjobs">
+  <div class="page-title">Saved Jobs</div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/saved</span>
+      <span class="summary">Get saved jobs</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns the list of jobs saved by the current user along with their IDs.</p>
+      <div class="sub-label">Response · 200 · SavedJobListResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method post">POST</span>
+      <span class="path">/saved/{jobId}</span>
+      <span class="summary">Save a job</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Saves the specified job for the current user. Idempotent — safe to call if already saved.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method delete">DELETE</span>
+      <span class="path">/saved/{jobId}</span>
+      <span class="summary">Unsave a job</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Removes the specified job from the user's saved list. Idempotent — safe to call if not saved.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- APPLICATIONS -->
+<div class="page" id="page-applications">
+  <div class="page-title">Applications</div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/applications</span>
+      <span class="summary">Get application list</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all non-deleted job applications for the current user, ordered by most recent.</p>
+      <div class="sub-label">Response · 200 · ApplicationResponse[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method post">POST</span>
+      <span class="path">/applications</span>
+      <span class="summary">Create application</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Creates a job application for the given jobId at stage "Applied". Idempotent — returns existing if already applied.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "jobId": 42 }</pre>
+      <div class="sub-label">Response · 200 · ApplicationResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method patch">PATCH</span>
+      <span class="path">/applications/{jobId}</span>
+      <span class="summary">Update application stage</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates the pipeline stage for the specified application.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "stage": 2 }</pre>
+      <div class="sub-label">Response · 200 · ApplicationResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method patch">PATCH</span>
+      <span class="path">/applications/{jobId}/note</span>
+      <span class="summary">Update application note</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Sets or updates a private note on the application.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "note": "string" }</pre>
+      <div class="sub-label">Response · 200 · ApplicationResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method delete">DELETE</span>
+      <span class="path">/applications/{jobId}</span>
+      <span class="summary">Delete application</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes the application (sets Status to Deleted). The record is retained for data export.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RESUME -->
+<div class="page" id="page-resume">
+  <div class="page-title">Resume</div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method post">POST</span>
+      <span class="path">/resume/upload</span>
+      <span class="summary">Upload resume</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Uploads a PDF or DOCX resume (max 5 MB). Triggers AI parsing pipeline. Returns parsed data for user confirmation before writing to profile.</p>
+      <div class="sub-label">Body · multipart/form-data</div>
+      <pre>file, name, setAsPrimary</pre>
+      <div class="sub-label">Response · 200 · ResumeUploadResponse</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/resume/download</span>
+      <span class="summary">Download profile as PDF</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Generates and downloads a PDF of the current user's profile data.</p>
+      <div class="sub-label">Response · 200 · application/pdf</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method get">GET</span>
+      <span class="path">/resume</span>
+      <span class="summary">List resumes</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Returns all active resume file slots for the current user, ordered primary-first then by upload date.</p>
+      <div class="sub-label">Response · 200 · ResumeListItemResponse[]</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method put">PUT</span>
+      <span class="path">/resume/{id}/name</span>
+      <span class="summary">Rename resume</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Updates the display name of the specified resume.</p>
+      <div class="sub-label">Body</div>
+      <pre>{ "name": "string" }</pre>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method delete">DELETE</span>
+      <span class="path">/resume/{id}</span>
+      <span class="summary">Delete resume</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Soft-deletes the specified resume. Returns 400 if attempting to delete the primary resume while other active resumes exist.</p>
+      <div class="sub-label">Response · 204</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header" onclick="toggle(this)">
+      <span class="method put">PUT</span>
+      <span class="path">/resume/{id}/set-primary</span>
+      <span class="summary">Set primary resume</span>
+      <span class="chevron">›</span>
+    </div>
+    <div class="endpoint-body">
+      <p class="purpose">Marks the specified resume as primary. Clears the primary flag on all other resumes for the user.</p>
+      <div class="sub-label">Response · 200</div>
+      <pre>{ "primaryResumeId": 7 }</pre>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+  function showTab(name) {
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    document.getElementById('page-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  function toggle(header) {
+    var body = header.nextElementSibling;
+    var chevron = header.querySelector('.chevron');
+    var isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    chevron.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>

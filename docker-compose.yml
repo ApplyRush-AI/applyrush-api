@@ -1,0 +1,145 @@
+version: '3.4'
+
+volumes:
+  postgres_data_volume:
+  applyrush_media_data:
+  applyrush_documents_data:
+  applyrush_kibana_config:
+  applyrush_elasticsearch_data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: applyrush_postgres
+    hostname: applyrush-postgres-host
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data_volume:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: applyrush_rabbitmq
+    hostname: applyrush-rabbitmq-host
+    restart: always
+    ports:
+      - 5674:5674
+      - 15674:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_NODE_PORT=5674
+    volumes:
+      - /docker_conf/rabbitmq/data/:/var/lib/rabbitmq/
+
+  api:
+    image: applyrush/api
+    container_name: applyrush_api
+    hostname: api
+    restart: always
+    build:
+      context: .
+      dockerfile: src/Api/Dockerfile
+    ports:
+      - "8090:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - elasticsearch
+      - redis
+    volumes:
+      - applyrush_media_data:/app/media
+      - applyrush_documents_data:/app/documents
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - Claude__ApiKey=${CLAUDE_API_KEY}
+
+  emailservice:
+    image: applyrush/emailservice
+    container_name: applyrush_emailservice
+    restart: always
+    build:
+      context: .
+      dockerfile: src/EmailService/Dockerfile
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - SendgridConfig__ApiKey=${SENDGRID_API_KEY}
+
+  worker:
+    image: applyrush/worker
+    container_name: applyrush_worker
+    restart: always
+    build:
+      context: .
+      dockerfile: src/Worker/Dockerfile
+    depends_on:
+      - postgres
+      - rabbitmq
+      - elasticsearch
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - Claude__ApiKey=${CLAUDE_API_KEY}
+
+  notificationservice:
+    image: applyrush/notificationservice
+    container_name: applyrush_notificationservice
+    hostname: notificationservice
+    restart: always
+    build:
+      context: .
+      dockerfile: src/NotificationService/Dockerfile
+    ports:
+      - "8091:8080"
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+
+  redis:
+    container_name: applyrush_redis
+    image: "redis:latest"
+    restart: always
+    ports:
+      - 6379:6379
+    expose:
+      - 6379
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.4
+    container_name: applyrush_elasticsearch
+    restart: always
+    environment:
+      - xpack.security.enabled=true
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - applyrush_elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - 9202:9200
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.4
+    container_name: applyrush_kibana
+    restart: always
+    ports:
+      - 5605:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://applyrush_elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - applyrush_kibana_config:/usr/share/kibana/config

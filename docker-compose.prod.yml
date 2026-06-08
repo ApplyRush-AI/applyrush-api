@@ -1,0 +1,56 @@
+version: '3.4'
+# Production overlay for the DigitalOcean droplet (api.applyrush.ai).
+# Use with the base file:
+#   docker compose --env-file /opt/applyrush-prod/.env -p applyrush \
+#     -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Key differences from base/dev:
+#   - The in-compose Postgres is excluded (DigitalOcean Managed Postgres is used)
+#   - The Managed Postgres CA cert is mounted into services that connect to it
+#   - Internal services don't publish host ports (compose network only)
+#   - Public-facing services bind to 127.0.0.1 so nginx can reverse-proxy them
+
+services:
+  # In-compose Postgres is disabled in production via profile.
+  # The "disabled-in-prod" profile is never activated, so this service won't start.
+  postgres:
+    profiles: ["disabled-in-prod"]
+
+  rabbitmq:
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  elasticsearch:
+    ports: !override []
+
+  kibana:
+    ports: !override
+      - "127.0.0.1:5605:5601"
+
+  api:
+    ports: !override
+      - "127.0.0.1:8090:8080"
+    depends_on: !override
+      - rabbitmq
+      - elasticsearch
+      - redis
+    volumes:
+      - /etc/ssl/certs/do-managed-postgres-ca.crt:/etc/ssl/certs/do-managed-postgres-ca.crt:ro
+
+  worker:
+    depends_on: !override
+      - rabbitmq
+      - elasticsearch
+      - redis
+    volumes:
+      - /etc/ssl/certs/do-managed-postgres-ca.crt:/etc/ssl/certs/do-managed-postgres-ca.crt:ro
+
+  notificationservice:
+    ports: !override
+      - "127.0.0.1:8091:8080"
+    depends_on: !override
+      - rabbitmq
+    volumes:
+      - /etc/ssl/certs/do-managed-postgres-ca.crt:/etc/ssl/certs/do-managed-postgres-ca.crt:ro

@@ -1,0 +1,50 @@
+name: Deploy to Production VPS
+
+# Runs on the self-hosted runner installed on the production DigitalOcean droplet
+# (label: applyrush-prod). Checks out the repo on the box and (re)builds +
+# restarts the docker compose stack against the DigitalOcean Managed Postgres.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, applyrush-prod]
+    env:
+      ASPNETCORE_ENVIRONMENT: Production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build & start the stack
+        run: |
+          docker compose --env-file /opt/applyrush-prod/.env -p applyrush \
+            -f docker-compose.yml \
+            -f docker-compose.prod.yml \
+            up -d --build --remove-orphans
+
+      - name: Wait for the API to come up
+        run: |
+          # First boot is slow: Elasticsearch needs 1-2 min to be ready and the
+          # API retries it before starting. 150 * 6s = 15 min ceiling.
+          for i in $(seq 1 150); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8090/swagger/index.html || true)
+            if [ "$code" = "200" ]; then echo "API is up (HTTP $code) after $i attempts"; exit 0; fi
+            echo "waiting for API... attempt $i (last HTTP: ${code:-none})"
+            sleep 6
+          done
+          echo "::error::API did not become healthy"
+          docker compose --env-file /opt/applyrush-prod/.env -p applyrush \
+            -f docker-compose.yml -f docker-compose.prod.yml logs --tail=150 api
+          exit 1
+
+      - name: Prune dangling images
+        if: always()
+        run: docker image prune -f
