@@ -59,6 +59,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - Claude__ApiKey=${CLAUDE_API_KEY}
+      - ConnectionStrings__Default=${DB_CONNECTION_STRING}
+      - RabbitMqConnection__Username=${RABBITMQ_USER}
+      - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
 
   emailservice:
     image: applyrush/emailservice
@@ -72,6 +75,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - SendgridConfig__ApiKey=${SENDGRID_API_KEY}
+      - ConnectionStrings__Default=${DB_CONNECTION_STRING}
+      - RabbitMqConnection__Username=${RABBITMQ_USER}
+      - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
 
   worker:
     image: applyrush/worker
@@ -88,6 +94,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - Claude__ApiKey=${CLAUDE_API_KEY}
+      - ConnectionStrings__Default=${DB_CONNECTION_STRING}
+      - RabbitMqConnection__Username=${RABBITMQ_USER}
+      - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
 
   notificationservice:
     image: applyrush/notificationservice
@@ -104,6 +113,9 @@ services:
       - rabbitmq
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__Default=${DB_CONNECTION_STRING}
+      - RabbitMqConnection__Username=${RABBITMQ_USER}
+      - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
 
   redis:
     container_name: applyrush_redis
