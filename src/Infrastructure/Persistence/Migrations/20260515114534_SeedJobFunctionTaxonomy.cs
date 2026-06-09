@@ -11,7 +11,27 @@ namespace Infrastructure.Persistence.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-ALTER TABLE ""JobFunction"" DISABLE TRIGGER ALL;
+			-- Ensure system admin user exists (id=1) for FK references in this seed.
+			-- Idempotent: if the user already exists (e.g. on existing dev DBs from the seeder run), this is a no-op.
+			INSERT INTO ""AspNetUsers"" (
+				""Id"", ""FirstName"", ""LastName"",
+				""UserName"", ""NormalizedUserName"", ""Email"", ""NormalizedEmail"",
+				""EmailConfirmed"", ""PasswordHash"", ""SecurityStamp"", ""ConcurrencyStamp"",
+				""PhoneNumberConfirmed"", ""TwoFactorEnabled"", ""LockoutEnabled"", ""AccessFailedCount"",
+				""Status"", ""Created"", ""Uid"", ""Media""
+			) VALUES (
+				1, 'System', 'Admin',
+				'administrator@applyrush.ai', 'ADMINISTRATOR@APPLYRUSH.AI', 'administrator@applyrush.ai', 'ADMINISTRATOR@APPLYRUSH.AI',
+				true, '', gen_random_uuid()::text, gen_random_uuid()::text,
+				false, false, false, 0,
+				1, NOW(), gen_random_uuid(), '{}'
+			)
+			ON CONFLICT (""Id"") DO NOTHING;
+
+			-- Reset the AspNetUsers sequence so future user creates start above id=1
+			SELECT setval(pg_get_serial_sequence('""AspNetUsers""', 'Id'), GREATEST((SELECT MAX(""Id"") FROM ""AspNetUsers""), 1));
+
+
 
 INSERT INTO ""JobFunction"" (""Id"", ""Name"", ""ParentId"", ""Status"", ""Created"", ""LastModified"", ""CreatedBy"", ""LastModifiedBy"") VALUES
         (10000, 'Software/Internet/AI', NULL, 1, NOW(), NOW(), 1, 1),
@@ -406,8 +426,6 @@ INSERT INTO ""JobFunction"" (""Id"", ""Name"", ""ParentId"", ""Status"", ""Creat
         (150200, 'Environmental Engineering', 150000, 1, NOW(), NOW(), 1, 1),
         (150202, 'Environmental Scientist', 150200, 1, NOW(), NOW(), 1, 1),
         (150201, 'Environmental Engineer', 150200, 1, NOW(), NOW(), 1, 1);
-
-ALTER TABLE ""JobFunction"" ENABLE TRIGGER ALL;
 
 SELECT setval(pg_get_serial_sequence('""JobFunction""', 'Id'), (SELECT MAX(""Id"") FROM ""JobFunction""));
 ");

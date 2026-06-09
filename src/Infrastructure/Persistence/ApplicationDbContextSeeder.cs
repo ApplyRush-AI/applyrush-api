@@ -26,8 +26,8 @@ public static class ApplicationDbContextSeeder
         {
             FirstName = "John",
             LastName = "Doe",
-            UserName = "administrator@applyrush.com",
-            Email = "administrator@applyrush.com",
+            UserName = "administrator@applyrush.ai",
+            Email = "administrator@applyrush.ai",
             EmailConfirmed = true,
             Media = new Media(MediaEntityType.User),
             Status = UserStatus.Active
