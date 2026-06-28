@@ -62,6 +62,11 @@ services:
       - ConnectionStrings__Default=${DB_CONNECTION_STRING}
       - RabbitMqConnection__Username=${RABBITMQ_USER}
       - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
+      - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
 
   emailservice:
     image: applyrush/emailservice
@@ -78,6 +83,11 @@ services:
       - ConnectionStrings__Default=${DB_CONNECTION_STRING}
       - RabbitMqConnection__Username=${RABBITMQ_USER}
       - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
+      - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
 
   worker:
     image: applyrush/worker
@@ -97,6 +107,11 @@ services:
       - ConnectionStrings__Default=${DB_CONNECTION_STRING}
       - RabbitMqConnection__Username=${RABBITMQ_USER}
       - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
+      - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
 
   notificationservice:
     image: applyrush/notificationservice
@@ -116,6 +131,11 @@ services:
       - ConnectionStrings__Default=${DB_CONNECTION_STRING}
       - RabbitMqConnection__Username=${RABBITMQ_USER}
       - RabbitMqConnection__Password=${RABBITMQ_PASSWORD}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
+      - Stripe__PublishableKey=${STRIPE_PUBLISHABLE_KEY}
+      - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
+      - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
+      - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
 
   redis:
     container_name: applyrush_redis
