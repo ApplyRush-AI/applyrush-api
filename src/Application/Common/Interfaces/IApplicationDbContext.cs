@@ -17,6 +17,10 @@ using Domain.Entities.RefreshTokens;
 using Domain.Entities.Resumes.Resume;
 using Domain.Entities.Settings;
 using Domain.Entities.Tailoring.ResumeAnalyses;
+using Domain.Entities.Extension.ExtensionSessions;
+using Domain.Entities.Subscriptions.UserSubscriptions;
+using Domain.Entities.Subscriptions.UserCredits;
+using Domain.Entities.Subscriptions.CreditTransactions;
 using Domain.Entities.Tailoring.ResumeTailorings;
 using Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
@@ -62,4 +66,12 @@ public interface IApplicationDbContext
     // Tailoring & Analysis
     DbSet<ResumeTailoring> ResumeTailoring { get; }
     DbSet<ResumeAnalysis> ResumeAnalysis { get; }
+
+    // Extension
+    DbSet<ExtensionSession> ExtensionSession { get; }
+
+    // Subscriptions
+    DbSet<UserSubscription> UserSubscription { get; }
+    DbSet<UserCredit> UserCredit { get; }
+    DbSet<CreditTransaction> CreditTransaction { get; }
 }

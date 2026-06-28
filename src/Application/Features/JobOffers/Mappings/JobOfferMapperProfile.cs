@@ -1,3 +1,5 @@
+using Application.Features.JobOffers.Commands;
+using Application.Features.JobOffers.Data;
 using AutoMapper;
 using Domain.Entities.Jobs.JobListings;
 using Domain.Interfaces;
@@ -14,6 +16,64 @@ public sealed class JobOfferMapperProfile : Profile
     public JobOfferMapperProfile(IDateTime dateTime)
     {
         _dateTime = dateTime;
+        CreateMap<JobOfferCreateRequest, JobOfferCreateCommand>()
+            .ConstructUsing((src, _) => new JobOfferCreateCommand(
+                src.UserId,
+                src.Title,
+                src.Company,
+                src.CompanyLogoUrl,
+                src.Description,
+                src.About,
+                src.Responsibilities,
+                src.Requirements,
+                src.Benefits,
+                src.RequiredSkills,
+                src.Industry,
+                src.Location,
+                src.WorkModel,
+                src.JobType,
+                src.ExperienceLevel,
+                src.SalaryMin,
+                src.SalaryMax,
+                src.Currency,
+                src.YearsRequired,
+                src.ApplicantCount,
+                src.PostedAt,
+                src.ExpiresAt,
+                src.ApplyUrl,
+                src.H1BSupported,
+                src.AiSummary));
+
+        CreateMap<JobOfferCreateCommand, JobOfferCreateData>()
+            .ConstructUsing((src, _) => new JobOfferCreateData(
+                string.Empty,
+                default,
+                src.Title,
+                src.Company,
+                src.CompanyLogoUrl,
+                src.Description,
+                src.About,
+                src.Responsibilities,
+                src.Requirements,
+                src.Benefits,
+                src.RequiredSkills,
+                src.Industry,
+                src.Location,
+                src.WorkModel,
+                src.JobType,
+                src.ExperienceLevel,
+                src.SalaryMin,
+                src.SalaryMax,
+                src.Currency,
+                src.YearsRequired,
+                src.ApplicantCount,
+                src.PostedAt,
+                src.ExpiresAt,
+                src.ApplyUrl,
+                src.H1BSupported,
+                src.AiSummary,
+                default));
+
         CreateMap<JobListing, JobOfferFeedItemResponse>()
             .ForMember(d => d.WorkModel, opt => opt.MapFrom(s =>
                 new ListItemBaseResponse { Id = (int)s.WorkModel, Name = s.WorkModel.ToString() }))

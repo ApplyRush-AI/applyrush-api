@@ -21,13 +21,13 @@ public class SettingsController : ApiControllerBase
         return NoContent();
     }
 
-    [HttpGet("job-preferences")]
+    [HttpGet("preferences")]
     public async Task<IActionResult> GetJobPreferences()
     {
         return Ok(await Mediator.Send(new JobPreferenceGetQuery()));
     }
 
-    [HttpPut("job-preferences")]
+    [HttpPut("preferences")]
     public async Task<IActionResult> UpdateJobPreferences([FromBody] JobPreferenceUpdateCommand request)
     {
         await Mediator.Send(request);

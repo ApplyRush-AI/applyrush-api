@@ -18,6 +18,10 @@ using Domain.Entities.RefreshTokens;
 using Domain.Entities.Resumes.Resume;
 using Domain.Entities.Settings;
 using Domain.Entities.Tailoring.ResumeAnalyses;
+using Domain.Entities.Extension.ExtensionSessions;
+using Domain.Entities.Subscriptions.UserSubscriptions;
+using Domain.Entities.Subscriptions.UserCredits;
+using Domain.Entities.Subscriptions.CreditTransactions;
 using Domain.Entities.Tailoring.ResumeTailorings;
 using Domain.Entities.User;
 using Microsoft.AspNetCore.Identity;
@@ -69,6 +73,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<JobApplication> JobApplication => Set<JobApplication>();
     public DbSet<ResumeTailoring> ResumeTailoring => Set<ResumeTailoring>();
     public DbSet<ResumeAnalysis> ResumeAnalysis => Set<ResumeAnalysis>();
+
+    // Extension
+    public DbSet<ExtensionSession> ExtensionSession => Set<ExtensionSession>();
+
+    // Subscriptions
+    public DbSet<UserSubscription> UserSubscription => Set<UserSubscription>();
+    public DbSet<UserCredit> UserCredit => Set<UserCredit>();
+    public DbSet<CreditTransaction> CreditTransaction => Set<CreditTransaction>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

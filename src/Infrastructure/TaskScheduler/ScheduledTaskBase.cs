@@ -81,7 +81,7 @@ public abstract class ScheduledTaskBase : IHostedService
         try
         {
             var applicationUserManager = serviceProvider.GetService<IApplicationUserManager>();
-            var administrator = await applicationUserManager!.GetByEmailAsync("administrator@applyrush.ai");
+            var administrator = await applicationUserManager!.GetByEmailAsync("administrator@applyrush.com");
 
             if (administrator != null)
             {

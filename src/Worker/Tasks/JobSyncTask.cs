@@ -9,7 +9,7 @@ namespace Worker.Tasks;
 
 public sealed class JobSyncTask : ScheduledTaskBase
 {
-    protected override string Schedule => "0 */12 * * *"; // every 12 hours
+    protected override string Schedule => "0 0 */3 * *"; // every 3 days — conserves the 200 req/month free tier quota
     protected override string Name => "JobSync";
 
     public JobSyncTask(IServiceScopeFactory serviceScopeFactory)
