@@ -11,7 +11,9 @@ using Infrastructure.MessageBroker;
 using Infrastructure.Search;
 using Infrastructure.Services;
 using Infrastructure.Services.Cities;
+using Infrastructure.Services.Configuration;
 using Infrastructure.Services.JobSync;
+using Infrastructure.Common.Extensions;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
 
@@ -34,6 +36,9 @@ public static class DependencyInjection
         services.AddScoped<IResumeTailoringAiService, ResumeTailoringAiService>();
         services.AddScoped<IResumeAnalysisAiService, ResumeAnalysisAiService>();
         services.AddScoped<ICreditService, CreditService>();
+        services.AddConfigurationBoundOptions<StripeConfig>(StripeConfig.SectionName);
+        services.AddScoped<IStripeService, StripeService>();
+        services.AddScoped<IExtensionAnswerAiService, ExtensionAnswerAiService>();
         services.AddSingleton<ICityProvider, EmbeddedCityProvider>();
         services.AddClaude();
         services.AddJobSync();

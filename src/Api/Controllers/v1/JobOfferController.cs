@@ -1,5 +1,7 @@
 using Application.Features.JobOffers.Commands;
 using Application.Features.JobOffers.Queries;
+using AutoMapper;
+using DTO.JobOffers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,8 +9,23 @@ namespace Api.Controllers.v1;
 
 public class JobOfferController : ApiControllerBase
 {
-    [HttpPost("feed")]
-    public async Task<IActionResult> GetFeed([FromBody] JobOfferFeedQuery query, CancellationToken ct)
+    private readonly IMapper _mapper;
+
+    public JobOfferController(IMapper mapper)
+    {
+        _mapper = mapper;
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> Create([FromBody] JobOfferCreateRequest request, CancellationToken ct)
+    {
+        var command = _mapper.Map<JobOfferCreateCommand>(request);
+        return Ok(await Mediator.Send(command, ct));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetFeed([FromQuery] JobOfferFeedQuery query, CancellationToken ct)
     {
         return Ok(await Mediator.Send(query, ct));
     }

@@ -3,6 +3,7 @@ using Domain.Entities.Base.Interfaces;
 using Domain.Entities.Jobs.JobApplications;
 using Domain.Entities.Jobs.UserJobMatches;
 using Domain.Entities.Jobs.UserSavedJobs;
+using Domain.Events.Jobs;
 using DTO.Enums;
 using DTO.Enums.Job;
 
@@ -47,7 +48,7 @@ public sealed class JobListing : BaseAuditableEntity, IWithStatus
 
     public static JobListing Create(IJobListingInsertData data)
     {
-        return new JobListing
+        var jobListing = new JobListing
         {
             ExternalId = data.ExternalId,
             Source = data.Source,
@@ -78,6 +79,9 @@ public sealed class JobListing : BaseAuditableEntity, IWithStatus
             LastSyncedAt = data.LastSyncedAt,
             Status = Status.Active
         };
+
+        jobListing.AddDomainEvent(new JobListingCreatedEvent(jobListing));
+        return jobListing;
     }
 
     public void Update(IJobListingUpdateData data)

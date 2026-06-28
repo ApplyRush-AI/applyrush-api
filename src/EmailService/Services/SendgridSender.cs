@@ -34,6 +34,6 @@ public class SendgridSender : IEmailSender
 
         var response = await sendGridClient.SendEmailAsync(msg);
 
-        _logger.LogInformation("Is Success: {success}. Sengrid response: {response}", response?.IsSuccessStatusCode == true, response);
+        _logger.LogInformation("Is Success: {success}. Sengrid response status code: {response}", response?.IsSuccessStatusCode == true, response.StatusCode.ToString());
     }
 }

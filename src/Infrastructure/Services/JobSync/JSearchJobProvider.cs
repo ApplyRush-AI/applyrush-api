@@ -35,7 +35,7 @@ public sealed class JSearchJobProvider : IJobProvider
         client.DefaultRequestHeaders.Add("x-rapidapi-key", _options.ApiKey);
         client.DefaultRequestHeaders.Add("x-rapidapi-host", "jsearch.p.rapidapi.com");
 
-        var url = $"search?query={Uri.EscapeDataString(query)}&page={page}&num_pages=1";
+        var url = $"search-v2?query={Uri.EscapeDataString(query)}&page={page}&num_pages=1&country=us&date_posted=all";
         var response = await client.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
 

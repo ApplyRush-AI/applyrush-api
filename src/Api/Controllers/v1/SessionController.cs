@@ -12,10 +12,10 @@ public class SessionController : ApiControllerBase
         return Ok(await Mediator.Send(new SessionListGetQuery()));
     }
 
-    [HttpDelete]
-    public async Task<IActionResult> Revoke([FromBody] SessionRevokeCommand request)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Revoke(string id)
     {
-        await Mediator.Send(request);
+        await Mediator.Send(new SessionRevokeCommand(id));
         return NoContent();
     }
 }

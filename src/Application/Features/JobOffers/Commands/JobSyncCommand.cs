@@ -50,7 +50,7 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
         try
         {
             var queries = await _dbContext.JobFunction
-                .Where(f => f.Status == Status.Active)
+                .Where(f => f.Status == Status.Active && !f.Children.Any())
                 .Select(f => f.Name)
                 .ToListAsync(cancellationToken);
 
