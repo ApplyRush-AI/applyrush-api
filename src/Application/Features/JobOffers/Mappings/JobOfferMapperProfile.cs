@@ -1,6 +1,5 @@
-using Application.Features.JobOffers.Commands;
-using Application.Features.JobOffers.Data;
 using AutoMapper;
+using Application.Features.JobOffers.Helpers;
 using Domain.Entities.Jobs.JobListings;
 using Domain.Interfaces;
 using DTO.JobOffers;
@@ -16,64 +15,6 @@ public sealed class JobOfferMapperProfile : Profile
     public JobOfferMapperProfile(IDateTime dateTime)
     {
         _dateTime = dateTime;
-        CreateMap<JobOfferCreateRequest, JobOfferCreateCommand>()
-            .ConstructUsing((src, _) => new JobOfferCreateCommand(
-                src.UserId,
-                src.Title,
-                src.Company,
-                src.CompanyLogoUrl,
-                src.Description,
-                src.About,
-                src.Responsibilities,
-                src.Requirements,
-                src.Benefits,
-                src.RequiredSkills,
-                src.Industry,
-                src.Location,
-                src.WorkModel,
-                src.JobType,
-                src.ExperienceLevel,
-                src.SalaryMin,
-                src.SalaryMax,
-                src.Currency,
-                src.YearsRequired,
-                src.ApplicantCount,
-                src.PostedAt,
-                src.ExpiresAt,
-                src.ApplyUrl,
-                src.H1BSupported,
-                src.AiSummary));
-
-        CreateMap<JobOfferCreateCommand, JobOfferCreateData>()
-            .ConstructUsing((src, _) => new JobOfferCreateData(
-                string.Empty,
-                default,
-                src.Title,
-                src.Company,
-                src.CompanyLogoUrl,
-                src.Description,
-                src.About,
-                src.Responsibilities,
-                src.Requirements,
-                src.Benefits,
-                src.RequiredSkills,
-                src.Industry,
-                src.Location,
-                src.WorkModel,
-                src.JobType,
-                src.ExperienceLevel,
-                src.SalaryMin,
-                src.SalaryMax,
-                src.Currency,
-                src.YearsRequired,
-                src.ApplicantCount,
-                src.PostedAt,
-                src.ExpiresAt,
-                src.ApplyUrl,
-                src.H1BSupported,
-                src.AiSummary,
-                default));
-
         CreateMap<JobListing, JobOfferFeedItemResponse>()
             .ForMember(d => d.WorkModel, opt => opt.MapFrom(s =>
                 new ListItemBaseResponse { Id = (int)s.WorkModel, Name = s.WorkModel.ToString() }))
@@ -81,8 +22,9 @@ public sealed class JobOfferMapperProfile : Profile
                 new ListItemBaseResponse { Id = (int)s.JobType, Name = s.JobType.ToString() }))
             .ForMember(d => d.ExperienceLevel, opt => opt.MapFrom(s =>
                 new ListItemBaseResponse { Id = (int)s.ExperienceLevel, Name = s.ExperienceLevel.ToString() }))
-            .ForMember(d => d.Salary, opt => opt.MapFrom(s => FormatSalary(s.SalaryMin, s.SalaryMax, s.Currency)))
-            .ForMember(d => d.PostedAgo, opt => opt.MapFrom(s => FormatTimeAgo(s.PostedAt)))
+            .ForMember(d => d.Salary, opt => opt.MapFrom(s => JobOfferDisplayFormatter.FormatSalary(s.SalaryMin, s.SalaryMax, s.Currency)))
+            .ForMember(d => d.PostedAt, opt => opt.MapFrom(s => s.PostedAt))
+            .ForMember(d => d.PostedAgo, opt => opt.MapFrom(s => JobOfferDisplayFormatter.FormatTimeAgo(s.PostedAt, _dateTime.Now)))
             .ForMember(d => d.MatchScore, opt => opt.MapFrom((s, _, _, ctx) =>
                 s.UserMatches.FirstOrDefault()?.OverallScore))
             .ForMember(d => d.Scores, opt => opt.MapFrom((s, _, _, ctx) =>
@@ -113,48 +55,30 @@ public sealed class JobOfferMapperProfile : Profile
                 s.SavedByUsers.Any()))
             .ForMember(d => d.CompanyShort, opt => opt.MapFrom(s =>
                 s.Company.Length <= 2 ? s.Company : string.Concat(s.Company.Where(char.IsUpper).Take(2))))
-            .ForMember(d => d.LogoColor, opt => opt.Ignore());
+            .ForMember(d => d.LogoColor, opt => opt.Ignore())
+            .ForMember(d => d.RequiredSkills, opt => opt.MapFrom((s, _) =>
+                (IReadOnlyList<string>)SafeDeserializeList(s.RequiredSkills)))
+            .ForMember(d => d.JobFunctions, opt => opt.MapFrom(s =>
+                (IReadOnlyList<ListItemBaseResponse>)s.JobFunctions
+                    .Select(jf => new ListItemBaseResponse { Id = jf.JobFunctionId, Name = jf.JobFunction.Name })
+                    .ToList()));
 
         CreateMap<JobListing, JobOfferDetailResponse>()
             .IncludeBase<JobListing, JobOfferFeedItemResponse>()
-            .ForMember(d => d.RequiredSkills, opt => opt.MapFrom((s, _) =>
-                string.IsNullOrEmpty(s.RequiredSkills)
-                    ? (IReadOnlyList<string>)Array.Empty<string>()
-                    : JsonSerializer.Deserialize<List<string>>(s.RequiredSkills) ?? new List<string>()))
             .ForMember(d => d.Description, opt => opt.MapFrom((s, _) => new JobOfferDescriptionResponse
             {
                 About = s.About,
-                Responsibilities = string.IsNullOrEmpty(s.Responsibilities)
-                    ? Array.Empty<string>()
-                    : JsonSerializer.Deserialize<List<string>>(s.Responsibilities) ?? new List<string>(),
-                Requirements = string.IsNullOrEmpty(s.Requirements)
-                    ? Array.Empty<string>()
-                    : JsonSerializer.Deserialize<List<string>>(s.Requirements) ?? new List<string>(),
-                Benefits = string.IsNullOrEmpty(s.Benefits)
-                    ? Array.Empty<string>()
-                    : JsonSerializer.Deserialize<List<string>>(s.Benefits) ?? new List<string>()
+                Responsibilities = SafeDeserializeList(s.Responsibilities),
+                Requirements = SafeDeserializeList(s.Requirements),
+                Benefits = SafeDeserializeList(s.Benefits)
             }));
     }
 
-    private static string? FormatSalary(decimal? min, decimal? max, string? currency)
+    private static IReadOnlyList<string> SafeDeserializeList(string? json)
     {
-        if (!min.HasValue && !max.HasValue) return null;
-        var symbol = currency == "USD" ? "$" : (currency ?? "$");
-        static string FormatAmount(decimal v) => v >= 1000 ? $"{v / 1000:0}k" : v.ToString("0");
-        if (min.HasValue && max.HasValue)
-            return $"{symbol}{FormatAmount(min.Value)} – {symbol}{FormatAmount(max.Value)}";
-        if (min.HasValue)
-            return $"{symbol}{FormatAmount(min.Value)}+";
-        return $"Up to {symbol}{FormatAmount(max!.Value)}";
+        if (string.IsNullOrEmpty(json)) return [];
+        try { return JsonSerializer.Deserialize<List<string>>(json) ?? []; }
+        catch { return []; }
     }
 
-    private string FormatTimeAgo(DateTime postedAt)
-    {
-        var diff = _dateTime.Now - postedAt;
-        return diff.TotalDays >= 1
-            ? $"{(int)diff.TotalDays}d ago"
-            : diff.TotalHours >= 1
-                ? $"{(int)diff.TotalHours}h ago"
-                : "Just now";
-    }
 }

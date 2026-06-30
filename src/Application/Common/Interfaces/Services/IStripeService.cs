@@ -11,6 +11,9 @@ public interface IStripeService
     /// <summary>Creates a Stripe Checkout Session and returns the URL.</summary>
     Task<string> CreateCheckoutSessionAsync(string stripeCustomerId, SubscriptionPlan plan, BillingInterval interval, CancellationToken cancellationToken);
 
+    /// <summary>Retrieves a completed Checkout Session and its subscription details for confirmation.</summary>
+    Task<StripeWebhookEvent> GetCheckoutSessionAsync(string sessionId, CancellationToken cancellationToken);
+
     /// <summary>Cancels the Stripe subscription at the current period end.</summary>
     Task CancelSubscriptionAtPeriodEndAsync(string stripeSubscriptionId, CancellationToken cancellationToken);
 

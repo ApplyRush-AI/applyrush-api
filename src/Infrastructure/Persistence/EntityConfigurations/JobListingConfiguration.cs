@@ -13,5 +13,6 @@ public sealed class JobListingConfiguration : EntityTypeConfiguration<JobListing
 
         builder.Property(j => j.SalaryMin).HasPrecision(18, 2);
         builder.Property(j => j.SalaryMax).HasPrecision(18, 2);
+
     }
 }

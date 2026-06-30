@@ -1,5 +1,5 @@
-using Application.Features.SavedJobOffers.Commands;
-using Application.Features.SavedJobOffers.Queries;
+using Application.Features.JobOffers.Commands;
+using Application.Features.JobOffers.Queries;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.v1;

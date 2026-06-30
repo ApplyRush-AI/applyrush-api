@@ -6,6 +6,7 @@ using DTO.Enums.Profile.Education;
 using DTO.Enums.Profile.EeoData;
 using DTO.Enums.Profile.UserProfile;
 using DTO.Enums.Resume;
+using DTO.Enums.Subscription;
 using DTO.Enums.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -105,9 +106,61 @@ public sealed class EnumsController : ApiControllerBase
     public async Task<IActionResult> GetTailoringStatuses(CancellationToken ct)
         => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(TailoringStatus)), ct));
 
+    [HttpGet("tailoring-work-modes")]
+    public async Task<IActionResult> GetTailoringWorkModes(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(TailoringWorkMode)), ct));
+
+    // Custom Resume Style
+
+    [HttpGet("paper-sizes")]
+    public async Task<IActionResult> GetPaperSizes(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(PaperSize)), ct));
+
+    [HttpGet("resume-templates")]
+    public async Task<IActionResult> GetResumeTemplates(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(ResumeTemplate)), ct));
+
+    [HttpGet("accent-color-scopes")]
+    public async Task<IActionResult> GetAccentColorScopes(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(AccentColorScope)), ct));
+
+    [HttpGet("resume-font-families")]
+    public async Task<IActionResult> GetResumeFontFamilies(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(ResumeFontFamily)), ct));
+
+    [HttpGet("resume-date-formats")]
+    public async Task<IActionResult> GetResumeDateFormats(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(ResumeDateFormat)), ct));
+
+    [HttpGet("bullet-icons")]
+    public async Task<IActionResult> GetBulletIcons(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(BulletIcon)), ct));
+
+    [HttpGet("resume-header-alignments")]
+    public async Task<IActionResult> GetResumeHeaderAlignments(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(ResumeHeaderAlignment)), ct));
+
+    [HttpGet("education-display-orders")]
+    public async Task<IActionResult> GetEducationDisplayOrders(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(EducationDisplayOrder)), ct));
+
+    [HttpGet("skills-layouts")]
+    public async Task<IActionResult> GetSkillsLayouts(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(SkillsLayout)), ct));
+
     // Notification
 
     [HttpGet("notification-types")]
     public async Task<IActionResult> GetNotificationTypes(CancellationToken ct)
         => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(NotificationType)), ct));
+
+    // Subscription
+
+    [HttpGet("subscription-plans")]
+    public async Task<IActionResult> GetSubscriptionPlans(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(SubscriptionPlan)), ct));
+
+    [HttpGet("billing-intervals")]
+    public async Task<IActionResult> GetBillingIntervals(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(BillingInterval)), ct));
 }

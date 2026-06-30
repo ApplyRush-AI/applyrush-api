@@ -27,7 +27,8 @@ public sealed class ResumeTailoringMapperProfile : Profile
         CreateMap<ResumeTailoringAiRewriteResult, ResumeTailoringAiRewriteResponse>();
 
         CreateMap<ResumeTailoringAiResult, ResumeTailoringCompleteData>()
-            .ForMember(d => d.Status, opt => opt.Ignore());
+            .ForMember(d => d.Status, opt => opt.Ignore())
+            .ForMember(d => d.Changes, opt => opt.MapFrom(s => s.Changes));
 
         CreateMap<ResumeTailoringNotificationPayload, string>()
             .ConvertUsing((src, _) => JsonSerializer.Serialize(src));

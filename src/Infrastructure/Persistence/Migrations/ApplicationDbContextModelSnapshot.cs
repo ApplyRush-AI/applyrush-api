@@ -277,6 +277,54 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("JobListing");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListingJobFunction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("JobFunctionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("JobListingId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobFunctionId");
+
+                    b.HasIndex("JobListingId", "JobFunctionId")
+                        .IsUnique();
+
+                    b.ToTable("JobListingJobFunction");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Jobs.UserHiddenJobs.UserHiddenJob", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("UserId", "JobId")
+                        .IsUnique();
+
+                    b.ToTable("UserHiddenJob");
+                });
+
             modelBuilder.Entity("Domain.Entities.Jobs.UserJobMatches.UserJobMatch", b =>
                 {
                     b.Property<int>("Id")
@@ -1259,6 +1307,10 @@ namespace Infrastructure.Persistence.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ChangesJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -1661,6 +1713,44 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("Creator");
 
                     b.Navigation("LastModifier");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListingJobFunction", b =>
+                {
+                    b.HasOne("Domain.Entities.JobFunctions.JobFunction", "JobFunction")
+                        .WithMany()
+                        .HasForeignKey("JobFunctionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Jobs.JobListings.JobListing", "JobListing")
+                        .WithMany("JobFunctions")
+                        .HasForeignKey("JobListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobFunction");
+
+                    b.Navigation("JobListing");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Jobs.UserHiddenJobs.UserHiddenJob", b =>
+                {
+                    b.HasOne("Domain.Entities.Jobs.JobListings.JobListing", "Job")
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Job");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Jobs.UserJobMatches.UserJobMatch", b =>
@@ -2133,6 +2223,8 @@ namespace Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListing", b =>
                 {
                     b.Navigation("Applications");
+
+                    b.Navigation("JobFunctions");
 
                     b.Navigation("SavedByUsers");
 

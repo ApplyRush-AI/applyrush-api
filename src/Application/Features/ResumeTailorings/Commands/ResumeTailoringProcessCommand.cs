@@ -40,6 +40,9 @@ public sealed class ResumeTailoringProcessCommandHandler : ICommandHandler<Resum
             .FirstOrDefaultAsync(t => t.Id == command.TailoringId, cancellationToken)
             ?? throw new NotFoundException(nameof(ResumeTailoring), command.TailoringId);
 
+        if (tailoring.Status != TailoringStatus.Processing)
+            return;
+
         try
         {
             var options = _mapper.Map<ResumeTailoringAiOptions>(tailoring);

@@ -1,7 +1,9 @@
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Interfaces.Services;
+using Application.Features.Credits.Data;
 using Domain.Entities.Subscriptions.UserCredits;
+using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Services;
@@ -9,10 +11,14 @@ namespace Infrastructure.Services;
 public sealed class CreditService : ICreditService
 {
     private readonly IApplicationDbContext _dbContext;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IDateTime _dateTime;
 
-    public CreditService(IApplicationDbContext dbContext)
+    public CreditService(IApplicationDbContext dbContext, IUnitOfWork unitOfWork, IDateTime dateTime)
     {
         _dbContext = dbContext;
+        _unitOfWork = unitOfWork;
+        _dateTime = dateTime;
     }
 
     public async Task<int> GetTailoringCreditsRemainingAsync(int userId, CancellationToken cancellationToken)
@@ -58,8 +64,18 @@ public sealed class CreditService : ICreditService
     }
 
     private async Task<UserCredit> GetCreditAsync(int userId, CancellationToken cancellationToken)
-        => await _dbContext.UserCredit
-               .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken)
-           ?? throw NotFoundException.New<UserCredit>();
+    {
+        var credit = await _dbContext.UserCredit
+            .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
+
+        if (credit is not null)
+            return credit;
+
+        // Back-fill for users registered before the credit system was introduced
+        credit = UserCredit.Create(new UserCreditInsertData(userId, 2, 1, 4, _dateTime.Now));
+        await _dbContext.UserCredit.AddAsync(credit, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return credit;
+    }
 }
 

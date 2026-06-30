@@ -9,4 +9,5 @@ internal sealed record ResumeTailoringCompleteData : IResumeTailoringCompleteDat
     public decimal ScoreBefore { get; init; }
     public decimal ScoreAfter { get; init; }
     public TailoringStatus Status { get; init; }
+    public IReadOnlyList<string> Changes { get; init; } = [];
 }

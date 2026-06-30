@@ -25,9 +25,9 @@ public class JobOfferController : ApiControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetFeed([FromQuery] JobOfferFeedQuery query, CancellationToken ct)
+    public async Task<IActionResult> GetFeed([FromQuery] JobOfferFeedQuery feed, CancellationToken ct)
     {
-        return Ok(await Mediator.Send(query, ct));
+        return Ok(await Mediator.Send(feed, ct));
     }
 
     [HttpGet("{id:int}")]
@@ -36,12 +36,33 @@ public class JobOfferController : ApiControllerBase
         return Ok(await Mediator.Send(new JobOfferGetByIdQuery(id), ct));
     }
 
+    [HttpGet("industries")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetIndustries(CancellationToken ct)
+    {
+        return Ok(await Mediator.Send(new JobOfferIndustriesGetQuery(), ct));
+    }
+
     [HttpPost("rebuild-index")]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> RebuildIndex(CancellationToken ct)
     {
         await Mediator.Send(new JobOfferInitiateSearchIndexRebuildCommand(), ct);
         return Accepted();
+    }
+
+    [HttpPost("{id:int}/hide")]
+    public async Task<IActionResult> Hide(int id, CancellationToken ct)
+    {
+        await Mediator.Send(new JobOfferHideCommand(id), ct);
+        return Ok();
+    }
+
+    [HttpDelete("{id:int}/hide")]
+    public async Task<IActionResult> Unhide(int id, CancellationToken ct)
+    {
+        await Mediator.Send(new JobOfferUnhideCommand(id), ct);
+        return Ok();
     }
 
     [HttpGet("sync/status")]

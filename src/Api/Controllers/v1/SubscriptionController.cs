@@ -32,6 +32,12 @@ public class SubscriptionController : ApiControllerBase
         return Ok(await Mediator.Send(command));
     }
 
+    [HttpPost("checkout/confirm")]
+    public async Task<IActionResult> ConfirmCheckout([FromBody] SubscriptionConfirmCommand command)
+    {
+        return Ok(await Mediator.Send(command));
+    }
+
     [HttpPost("cancel")]
     public async Task<IActionResult> Cancel()
     {

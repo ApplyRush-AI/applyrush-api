@@ -8,4 +8,8 @@ public interface IMatchScoringService
         int userId,
         int jobId,
         CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<UserJobMatch>> ComputeForAllUsersAsync(
+        int jobId,
+        CancellationToken cancellationToken);
 }

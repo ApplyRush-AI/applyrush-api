@@ -1,5 +1,6 @@
 ﻿using Application.Common.Models.Configuration;
 using EmailService.Services.Interfaces;
+using HandlebarsDotNet;
 using Microsoft.Extensions.Options;
 
 namespace EmailService.Services;
@@ -32,6 +33,16 @@ public class TemplateProvider : ITemplateProvider
     {
         var rawHtml = await GetTemplateAsync(templateFor, templateName);
         return ParseHtmlWithParameters(rawHtml, parameters);
+    }
+
+    // Renders templates that need loops/conditionals (e.g. a list of cards) via Handlebars. Values are
+    // HTML-escaped by default ({{ }}); clientAppUrl is injected so templates can link back to the app.
+    public async Task<string> RenderAsync(string templateFor, string templateName, IDictionary<string, object?> model)
+    {
+        var rawHtml = await GetTemplateAsync(templateFor, templateName);
+        model["clientAppUrl"] = _appsConfig.ClientUrl;
+        var template = Handlebars.Compile(rawHtml);
+        return template(model);
     }
 
     public string ParseHtmlWithParameters(string rawHtml, Dictionary<string, string?> parameters)

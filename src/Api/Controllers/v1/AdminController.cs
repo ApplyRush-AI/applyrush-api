@@ -1,4 +1,7 @@
 using Application.Features.Admin.Queries;
+using Application.Features.JobOffers.Commands;
+using Application.Features.Notifications.Commands;
+using Application.Features.Users.Commands;
 using DTO.Enums.Subscription;
 using DTO.Enums.User;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +40,40 @@ public class AdminController : ApiControllerBase
     public async Task<IActionResult> GetJobSyncStatus()
     {
         return Ok(await Mediator.Send(new AdminJobSyncStatusGetQuery()));
+    }
+
+    [HttpPost("job-sync/run")]
+    public async Task<IActionResult> RunJobSync([FromQuery] int pages = 1)
+    {
+        await Mediator.Send(new JobSyncInitiateCommand(pages));
+        return Accepted();
+    }
+
+    [HttpPost("job-match/run")]
+    public async Task<IActionResult> RunJobMatchAll(CancellationToken ct)
+    {
+        await Mediator.Send(new JobMatchRebuildAllCommand(), ct);
+        return Accepted();
+    }
+
+    [HttpPost("search/reindex")]
+    public async Task<IActionResult> ReindexSearch(CancellationToken ct)
+    {
+        await Mediator.Send(new JobOfferRebuildSearchIndexCommand(), ct);
+        return Accepted();
+    }
+
+    [HttpPost("job-functions/link-all")]
+    public async Task<IActionResult> LinkJobFunctionsToAll(CancellationToken ct)
+    {
+        var updated = await Mediator.Send(new JobFunctionLinkAllCommand(), ct);
+        return Ok(new { updated });
+    }
+
+    [HttpGet("search/health")]
+    public async Task<IActionResult> GetSearchHealth(CancellationToken ct)
+    {
+        return Ok(await Mediator.Send(new AdminSearchHealthGetQuery(), ct));
     }
 }
 

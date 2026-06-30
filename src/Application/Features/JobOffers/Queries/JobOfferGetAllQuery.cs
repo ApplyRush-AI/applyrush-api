@@ -24,6 +24,8 @@ public sealed class JobOfferGetAllQueryHandler : IQueryHandler<JobOfferGetAllQue
     {
         var jobs = await _dbContext.JobListing
             .AsNoTracking()
+            .Include(j => j.JobFunctions)
+                .ThenInclude(jf => jf.JobFunction)
             .ToListAsync(cancellationToken);
 
         return _mapper.Map<IReadOnlyCollection<JobOfferFeedItemResponse>>(jobs);

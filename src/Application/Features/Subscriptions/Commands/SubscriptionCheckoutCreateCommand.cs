@@ -4,7 +4,9 @@ using Application.Common.Interfaces.Request;
 using Application.Common.Interfaces.Request.Handlers;
 using Application.Common.Interfaces.Services;
 using Application.Common.Localization.Extensions;
+using Application.Features.Subscriptions.Data;
 using Domain.Entities.Subscriptions.UserSubscriptions;
+using Domain.Entities.User;
 using Domain.Interfaces;
 using DTO.Enums.Subscription;
 using DTO.Subscription;
@@ -39,11 +41,8 @@ public sealed class SubscriptionCheckoutCreateCommandHandler : ICommandHandler<S
 
     public async Task<CheckoutUrlResponse> Handle(SubscriptionCheckoutCreateCommand command, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId;
-
-        var subscription = await _dbContext.UserSubscription
-            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken)
-            ?? throw NotFoundException.New<UserSubscription>();
+        var userId = (int)_currentUserService.UserId!;
+        var subscription = await GetOrCreateSubscriptionAsync(userId, cancellationToken);
 
         var checkoutUrl = await _stripeService.CreateCheckoutSessionAsync(
             subscription.StripeCustomerId,
@@ -52,6 +51,27 @@ public sealed class SubscriptionCheckoutCreateCommandHandler : ICommandHandler<S
             cancellationToken);
 
         return new CheckoutUrlResponse(checkoutUrl);
+    }
+
+    private async Task<UserSubscription> GetOrCreateSubscriptionAsync(int userId, CancellationToken cancellationToken)
+    {
+        var subscription = await _dbContext.UserSubscription
+            .FirstOrDefaultAsync(s => s.UserId == userId, cancellationToken);
+
+        if (subscription is not null)
+            return subscription;
+
+        var user = await _dbContext.User
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+            ?? throw NotFoundException.New<ApplicationUser>();
+
+        var customerId = await _stripeService.GetOrCreateCustomerAsync(userId, user.Email!, cancellationToken);
+
+        subscription = UserSubscription.Create(new UserSubscriptionInsertData(userId, customerId));
+        await _dbContext.UserSubscription.AddAsync(subscription, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return subscription;
     }
 }
 

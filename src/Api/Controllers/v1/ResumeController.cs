@@ -1,5 +1,6 @@
 using Application.Features.Resumes.Commands;
 using Application.Features.Resumes.Queries;
+using Application.Features.ResumeTailorings.Commands;
 using Domain.Entities.Resumes;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,12 @@ namespace Api.Controllers.v1;
 
 public class ResumeController : ApiControllerBase
 {
+    [HttpPost("generate-custom")]
+    public async Task<IActionResult> GenerateCustom([FromBody] ResumeTailoringGenerateCommand command)
+    {
+        return Ok(await Mediator.Send(command));
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
