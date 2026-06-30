@@ -14,21 +14,24 @@ public sealed class ApplicationUserCreatedMessageConsumer : IConsumer<Applicatio
     private readonly IApplicationDbContext _dbContext;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityContextAccessor _identityContextAccessor;
+    private readonly IDateTime _dateTime;
 
     public ApplicationUserCreatedMessageConsumer(
         IApplicationDbContext dbContext,
         IUnitOfWork unitOfWork,
-        IIdentityContextAccessor identityContextAccessor)
+        IIdentityContextAccessor identityContextAccessor,
+        IDateTime dateTime)
     {
         _dbContext = dbContext;
         _unitOfWork = unitOfWork;
         _identityContextAccessor = identityContextAccessor;
+        _dateTime = dateTime;
     }
 
     public async Task Consume(ConsumeContext<ApplicationUserCreatedMessage> context)
     {
         var userId = context.Message.UserId;
         _identityContextAccessor.IdentityContext = new IdentityContextCustom(new UserInfoById(userId));
-        await UserFoundationDataHelper.CreateAndSaveAsync(userId, _dbContext, _unitOfWork, context.CancellationToken);
+        await UserFoundationDataHelper.CreateAndSaveAsync(userId, _dbContext, _unitOfWork, _dateTime, context.CancellationToken);
     }
 }
