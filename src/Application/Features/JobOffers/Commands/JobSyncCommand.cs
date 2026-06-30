@@ -41,13 +41,9 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
 
     public async Task Handle(JobSyncCommand command, CancellationToken cancellationToken)
     {
-        var currentState = await _syncState.GetAsync(cancellationToken);
-        if (currentState.Status == JobSyncStatus.Running)
-        {
-            _logger.LogWarning("[JobSync] Sync is already running. Skipping.");
-            return;
-        }
-
+        // The scheduler (startup + every-3-days cron) decides when to run. We intentionally do NOT skip
+        // based on a stored "Running" status: a sync killed mid-run would otherwise leave the state stuck
+        // on Running and silently block every future run. State is written for reporting only, never to gate.
         await _syncState.SetAsync(new JobSyncStateData { Status = JobSyncStatus.Running }, cancellationToken);
 
         var jobsIndexed = 0;
