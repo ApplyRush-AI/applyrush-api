@@ -67,6 +67,7 @@ services:
       - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
+      - JSearch__ApiKey=${JSEARCH_API_KEY}
 
   emailservice:
     image: applyrush/emailservice
@@ -88,6 +89,7 @@ services:
       - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
+      - JSearch__ApiKey=${JSEARCH_API_KEY}
 
   worker:
     image: applyrush/worker
@@ -112,6 +114,7 @@ services:
       - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
+      - JSearch__ApiKey=${JSEARCH_API_KEY}
 
   notificationservice:
     image: applyrush/notificationservice
@@ -136,6 +139,7 @@ services:
       - Stripe__WebhookSecret=${STRIPE_WEBHOOK_SECRET}
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
+      - JSearch__ApiKey=${JSEARCH_API_KEY}
 
   redis:
     container_name: applyrush_redis
