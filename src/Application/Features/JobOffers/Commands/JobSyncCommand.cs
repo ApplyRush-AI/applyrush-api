@@ -56,14 +56,23 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
 
         try
         {
-            var jobFunctions = await _dbContext.JobFunction
+            // Leaf functions are used only to tag synced jobs (precise title matching), not to search.
+            var matchFunctions = await _dbContext.JobFunction
                 .Where(f => f.Status == Status.Active && !f.Children.Any())
                 .Select(f => new { f.Id, f.Name })
                 .ToListAsync(cancellationToken);
 
-            var queries = jobFunctions.Select(f => f.Name).ToList();
+            // Search the provider by the top-level categories only, to keep the request count low
+            // (~19 categories instead of ~288 leaves). Slashes in category names are turned into commas
+            // so JSearch treats them as separate OR-terms (e.g. "Software/Internet/AI" -> "Software, Internet, AI").
+            var queries = (await _dbContext.JobFunction
+                    .Where(f => f.Status == Status.Active && f.ParentId == null)
+                    .Select(f => f.Name)
+                    .ToListAsync(cancellationToken))
+                .Select(name => name.Replace("/", ", "))
+                .ToList();
 
-            _logger.LogInformation("[JobSync] Starting sync for {Count} job functions.", queries.Count);
+            _logger.LogInformation("[JobSync] Starting sync for {Count} categories.", queries.Count);
 
             foreach (var query in queries)
             {
@@ -71,7 +80,7 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
                 {
                     try
                     {
-                        var pageIndexed = await SyncPageAsync(query, page, jobFunctions.Select(f => (f.Id, f.Name)).ToList(), cancellationToken);
+                        var pageIndexed = await SyncPageAsync(query, page, matchFunctions.Select(f => (f.Id, f.Name)).ToList(), cancellationToken);
                         if (pageIndexed == 0)
                             break;
                         jobsIndexed += pageIndexed;
