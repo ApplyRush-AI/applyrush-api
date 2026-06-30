@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Persistence;
@@ -11,9 +12,11 @@ using Persistence;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260615090321_AddResumeTailoringChangesJson")]
+    partial class AddResumeTailoringChangesJson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,54 +278,6 @@ namespace Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("JobListing");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListingJobFunction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobFunctionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("JobListingId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobFunctionId");
-
-                    b.HasIndex("JobListingId", "JobFunctionId")
-                        .IsUnique();
-
-                    b.ToTable("JobListingJobFunction");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Jobs.UserHiddenJobs.UserHiddenJob", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("JobId");
-
-                    b.HasIndex("UserId", "JobId")
-                        .IsUnique();
-
-                    b.ToTable("UserHiddenJob");
                 });
 
             modelBuilder.Entity("Domain.Entities.Jobs.UserJobMatches.UserJobMatch", b =>
@@ -1715,44 +1670,6 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("LastModifier");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListingJobFunction", b =>
-                {
-                    b.HasOne("Domain.Entities.JobFunctions.JobFunction", "JobFunction")
-                        .WithMany()
-                        .HasForeignKey("JobFunctionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.Jobs.JobListings.JobListing", "JobListing")
-                        .WithMany("JobFunctions")
-                        .HasForeignKey("JobListingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("JobFunction");
-
-                    b.Navigation("JobListing");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Jobs.UserHiddenJobs.UserHiddenJob", b =>
-                {
-                    b.HasOne("Domain.Entities.Jobs.JobListings.JobListing", "Job")
-                        .WithMany()
-                        .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.User.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Job");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Entities.Jobs.UserJobMatches.UserJobMatch", b =>
                 {
                     b.HasOne("Domain.Entities.Jobs.JobListings.JobListing", null)
@@ -2223,8 +2140,6 @@ namespace Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Domain.Entities.Jobs.JobListings.JobListing", b =>
                 {
                     b.Navigation("Applications");
-
-                    b.Navigation("JobFunctions");
 
                     b.Navigation("SavedByUsers");
 

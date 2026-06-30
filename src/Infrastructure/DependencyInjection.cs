@@ -34,6 +34,8 @@ public static class DependencyInjection
         services.AddScoped<IMatchScoringService, MatchScoringService>();
         services.AddScoped<IPdfExportService, PdfExportService>();
         services.AddScoped<IResumeTailoringAiService, ResumeTailoringAiService>();
+        services.AddScoped<ICustomResumeAiService, CustomResumeAiService>();
+        services.AddScoped<ICustomResumePdfService, CustomResumePdfService>();
         services.AddScoped<IResumeAnalysisAiService, ResumeAnalysisAiService>();
         services.AddScoped<ICreditService, CreditService>();
         services.AddConfigurationBoundOptions<StripeConfig>(StripeConfig.SectionName);

@@ -27,6 +27,7 @@ public sealed class ResumeTailoringAiService : IResumeTailoringAiService
         "and inject the requested keywords naturally. Score how well the profile matches the job before and after. " +
         "Return ONLY a valid JSON object — no markdown, no explanation, no code fences. Use exactly these fields: " +
         "{ \"ScoreBefore\": <decimal 0-100>, \"ScoreAfter\": <decimal 0-100>, \"Summary\": \"<brief summary of changes>\", " +
+        "\"Changes\": [\"<one concise sentence describing each key change made>\"], " +
         "\"Experience\": [{ \"Id\": <work experience id as int>, \"Bullets\": [\"<bullet text>\"] }], " +
         "\"HighlightedSkills\": [\"<skill>\"], \"MissingSkills\": [\"<skill>\"] }";
 
@@ -220,6 +221,11 @@ public sealed class ResumeTailoringAiService : IResumeTailoringAiService
                 .Where(s => !string.IsNullOrWhiteSpace(s))
                 .ToList() ?? [];
 
+            var changes = node["Changes"]?.AsArray()
+                .Select(s => s?.GetValue<string>() ?? string.Empty)
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList() ?? [];
+
             return new ResumeTailoringAiResult
             {
                 TailoredContent = json,
@@ -228,7 +234,8 @@ public sealed class ResumeTailoringAiService : IResumeTailoringAiService
                 Summary = node["Summary"]?.GetValue<string>(),
                 Experience = experience,
                 HighlightedSkills = highlighted,
-                MissingSkills = missing
+                MissingSkills = missing,
+                Changes = changes
             };
         }
         catch

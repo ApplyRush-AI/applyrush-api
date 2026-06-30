@@ -41,7 +41,7 @@ public sealed class JSearchJobProvider : IJobProvider
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
         var node = JsonNode.Parse(json);
-        var data = node?["data"]?.AsArray();
+        var data = node?["data"]?["jobs"] as JsonArray;
 
         if (data == null || data.Count == 0)
             return [];
@@ -95,11 +95,12 @@ public sealed class JSearchJobProvider : IJobProvider
         var currency = item["job_salary_currency"]?.GetValue<string>();
 
         var highlights = item["job_highlights"];
-        var qualifications = JoinList(highlights?["Qualifications"]?.AsArray());
-        var responsibilities = JoinList(highlights?["Responsibilities"]?.AsArray());
-        var benefits = JoinList(highlights?["Benefits"]?.AsArray());
+        var qualifications = JoinList(highlights?["Qualifications"] as JsonArray);
+        var responsibilities = JoinList(highlights?["Responsibilities"] as JsonArray);
+        var benefits = JoinList(item["job_benefits_strings"] as JsonArray)
+            ?? JoinList(highlights?["Benefits"] as JsonArray);
 
-        var requiredSkillsArray = item["job_required_skills"]?.AsArray();
+        var requiredSkillsArray = item["job_required_skills"] as JsonArray;
         string? requiredSkillsJson = null;
         if (requiredSkillsArray != null && requiredSkillsArray.Count > 0)
         {

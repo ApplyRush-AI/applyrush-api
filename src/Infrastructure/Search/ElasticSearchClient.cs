@@ -86,8 +86,8 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             .Index(_index)
             .Query(q => BuildUserSearchQuery(q, criteria))
             .Sort(so => BuildUserSort(so, criteria.Sorting!))
-            .From((criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize)
-        .Size(criteria.Paging.PageSize));
+            .From(Math.Max(0, (criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize))
+        .Size(Math.Max(1, criteria.Paging.PageSize)));
 
         return new PaginatedList<UserSearchable>(searchResponse.Documents.ToList(), (int)searchResponse.Total, criteria.Paging.PageNumber, criteria.Paging.PageSize);
     }
@@ -98,8 +98,8 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             .Index(_index)
             .Query(q => BuildNotificationSearchQuery(q, criteria))
             .Sort(so => BuildNotificationSort(so, criteria.Sorting!))
-            .From((criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize)
-            .Size(criteria.Paging.PageSize));
+            .From(Math.Max(0, (criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize))
+            .Size(Math.Max(1, criteria.Paging.PageSize)));
 
         return new PaginatedList<NotificationSearchable>(searchResponse.Documents.ToList(), (int)searchResponse.Total, criteria.Paging.PageNumber, criteria.Paging.PageSize);
     }
@@ -110,10 +110,34 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             .Index(_index)
             .Query(q => BuildJobOfferSearchQuery(q, criteria))
             .Sort(so => BuildJobOfferSort(so, criteria.Sorting))
-            .From((criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize)
-            .Size(criteria.Paging.PageSize));
+            .From(Math.Max(0, (criteria.Paging.PageNumber - 1) * criteria.Paging.PageSize))
+            .Size(Math.Max(1, criteria.Paging.PageSize)));
+
+        if (!searchResponse.IsValid)
+            _logger.LogError("Elasticsearch job offer search failed: {DebugInformation}", searchResponse.DebugInformation);
 
         return new PaginatedList<JobOfferSearchable>(searchResponse.Documents.ToList(), (int)searchResponse.Total, criteria.Paging.PageNumber, criteria.Paging.PageSize);
+    }
+
+    public async Task<IReadOnlyList<JobOfferSearchable>> GetJobOffersByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        var response = await _elasticClient.SearchAsync<JobOfferSearchable>(s => s
+            .Index(_index)
+            .Query(q => q.Ids(i => i.Values(idList.Select(id => id.ToString()))))
+            .Size(idList.Count), cancellationToken);
+
+        if (!response.IsValid)
+            _logger.LogError("Elasticsearch GetJobOffersByIds failed: {DebugInformation}", response.DebugInformation);
+
+        return response.Documents.ToList();
+    }
+
+    public async Task DeleteIndexAsync(string index, CancellationToken cancellationToken = default)
+    {
+        var exists = await _elasticClient.Indices.ExistsAsync(index, ct: cancellationToken);
+        if (exists.Exists)
+            await _elasticClient.Indices.DeleteAsync(index, ct: cancellationToken);
     }
 
     private QueryContainer BuildUserSearchQuery(QueryContainerDescriptor<UserSearchable> descriptor, IUserFullSearchCriteria criteria)
@@ -283,9 +307,11 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
     private QueryContainer BuildJobOfferSearchQuery(QueryContainerDescriptor<JobOfferSearchable> descriptor, IJobOfferFullSearchCriteria criteria)
     {
         var combinedQuery = new QueryContainer();
+        var hasFilters = false;
 
         if (!string.IsNullOrWhiteSpace(criteria.Query))
         {
+            hasFilters = true;
             combinedQuery &= (BuildTextQuery(criteria.Query) ||
                               BuildWildcardQuery("title", criteria.Query) ||
                               BuildWildcardQuery("company", criteria.Query) ||
@@ -294,6 +320,7 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
 
         if (criteria.JobTypes is { Length: > 0 })
         {
+            hasFilters = true;
             combinedQuery &= new TermsQuery
             {
                 Field = "jobType.id",
@@ -303,6 +330,7 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
 
         if (criteria.WorkModel.HasValue)
         {
+            hasFilters = true;
             combinedQuery &= new TermQuery
             {
                 Field = "workModel.id",
@@ -312,6 +340,7 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
 
         if (criteria.ExperienceLevel.HasValue)
         {
+            hasFilters = true;
             combinedQuery &= new TermQuery
             {
                 Field = "experienceLevel.id",
@@ -319,26 +348,105 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             };
         }
 
+        if (criteria.SalaryMin.HasValue)
+        {
+            hasFilters = true;
+            combinedQuery &= new NumericRangeQuery
+            {
+                Field = "salaryMax",
+                GreaterThanOrEqualTo = (double)criteria.SalaryMin.Value
+            };
+        }
+
+        if (criteria.SalaryMax.HasValue)
+        {
+            hasFilters = true;
+            combinedQuery &= new NumericRangeQuery
+            {
+                Field = "salaryMin",
+                LessThanOrEqualTo = (double)criteria.SalaryMax.Value
+            };
+        }
+
         if (!string.IsNullOrWhiteSpace(criteria.Industry))
         {
+            hasFilters = true;
             combinedQuery &= BuildWildcardQuery("industry", criteria.Industry);
         }
 
-        return combinedQuery;
+        if (criteria.JobFunctionIds is { Length: > 0 })
+        {
+            hasFilters = true;
+            combinedQuery &= new TermsQuery
+            {
+                Field = "jobFunctions.id",
+                Terms = criteria.JobFunctionIds.Select(id => (object)id).ToList()
+            };
+        }
+
+        if (criteria.MinYearsOfExperience.HasValue || criteria.MaxYearsOfExperience.HasValue)
+        {
+            hasFilters = true;
+            combinedQuery &= new NumericRangeQuery
+            {
+                Field = "yearsRequired",
+                GreaterThanOrEqualTo = criteria.MinYearsOfExperience.HasValue ? (double)criteria.MinYearsOfExperience.Value : null,
+                LessThanOrEqualTo = criteria.MaxYearsOfExperience.HasValue ? (double)criteria.MaxYearsOfExperience.Value : null
+            };
+        }
+
+        if (!string.IsNullOrWhiteSpace(criteria.Location))
+        {
+            hasFilters = true;
+            combinedQuery &= BuildWildcardQuery("location", criteria.Location);
+        }
+
+        if (criteria.Skills is { Length: > 0 })
+        {
+            hasFilters = true;
+            var skillsQuery = criteria.Skills
+                .Aggregate(new QueryContainer(), (acc, skill) => acc | BuildWildcardQuery("requiredSkills", skill));
+            combinedQuery &= skillsQuery;
+        }
+
+        if (criteria.PostedAfter.HasValue || criteria.PostedBefore.HasValue)
+        {
+            hasFilters = true;
+            combinedQuery &= new DateRangeQuery
+            {
+                Field = "postedAt",
+                GreaterThanOrEqualTo = criteria.PostedAfter,
+                LessThanOrEqualTo = criteria.PostedBefore
+            };
+        }
+
+        if (criteria.IncludeIds is { Length: > 0 })
+        {
+            hasFilters = true;
+            combinedQuery &= new IdsQuery { Values = criteria.IncludeIds.Select(id => (Id)id.ToString()).ToList() };
+        }
+
+        if (criteria.ExcludeIds is { Length: > 0 })
+        {
+            hasFilters = true;
+            combinedQuery &= !new IdsQuery { Values = criteria.ExcludeIds.Select(id => (Id)id.ToString()).ToList() };
+        }
+
+        return hasFilters ? combinedQuery : descriptor.MatchAll();
     }
 
     private SortDescriptor<JobOfferSearchable> BuildJobOfferSort(SortDescriptor<JobOfferSearchable> descriptor, SortOptions<JobOfferFeedSortField>? sortOptions)
     {
         if (sortOptions == null)
-            return descriptor.Descending("matchScore");
+            return descriptor.Descending("postedAt");
 
         var sortOrder = sortOptions.SortOrder == DTO.Sorting.SortOrder.Asc ? Nest.SortOrder.Ascending : Nest.SortOrder.Descending;
 
         return sortOptions.Field switch
         {
             JobOfferFeedSortField.Match => descriptor.Field("matchScore", sortOrder),
-            JobOfferFeedSortField.Date => descriptor.Field("postedAgo.keyword", sortOrder),
-            _ => descriptor.Descending("matchScore")
+            JobOfferFeedSortField.Date => descriptor.Field("postedAt", sortOrder),
+            _ => descriptor.Descending("postedAt")
         };
     }
 
@@ -428,7 +536,7 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             if (!indexExistsResponse.Exists)
             {
                 _logger.LogDebug("Creating index {0}", index);
-                var createIndexResponse = await _elasticClient.Indices.CreateAsync(index, cid => cid.Map(m => m.AutoMap()));
+                var createIndexResponse = await _elasticClient.Indices.CreateAsync(index, cid => cid.Map<T>(m => m.AutoMap()));
                 if (!createIndexResponse.IsValid)
                 {
                     _logger.LogDebug("Failed to create index {0}. Response: {1}", index, JsonConvert.SerializeObject(createIndexResponse));

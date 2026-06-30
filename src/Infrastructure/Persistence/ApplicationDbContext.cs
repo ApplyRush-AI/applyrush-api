@@ -3,6 +3,7 @@ using Domain.Entities.JobFunctions;
 using Domain.Entities.Jobs.JobApplications;
 using Domain.Entities.Jobs.JobListings;
 using Domain.Entities.Jobs.UserJobMatches;
+using Domain.Entities.Jobs.UserHiddenJobs;
 using Domain.Entities.Jobs.UserSavedJobs;
 using Domain.Entities.Languages;
 using Domain.Entities.Notifications;
@@ -70,6 +71,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityR
     public DbSet<JobListing> JobListing => Set<JobListing>();
     public DbSet<UserJobMatch> UserJobMatch => Set<UserJobMatch>();
     public DbSet<UserSavedJob> UserSavedJob => Set<UserSavedJob>();
+    public DbSet<UserHiddenJob> UserHiddenJob => Set<UserHiddenJob>();
     public DbSet<JobApplication> JobApplication => Set<JobApplication>();
     public DbSet<ResumeTailoring> ResumeTailoring => Set<ResumeTailoring>();
     public DbSet<ResumeAnalysis> ResumeAnalysis => Set<ResumeAnalysis>();

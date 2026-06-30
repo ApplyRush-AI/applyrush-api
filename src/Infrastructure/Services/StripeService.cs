@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces.Services;
 using DTO.Enums.Subscription;
 using DTO.Subscription;
@@ -5,6 +6,7 @@ using Infrastructure.Services.Configuration;
 using Microsoft.Extensions.Options;
 using Stripe;
 using Stripe.Checkout;
+using System.Net;
 
 namespace Infrastructure.Services;
 
@@ -63,6 +65,49 @@ public sealed class StripeService : IStripeService
         }, cancellationToken: cancellationToken);
 
         return session.Url;
+    }
+
+    public async Task<Application.Common.Interfaces.Services.StripeWebhookEvent> GetCheckoutSessionAsync(string sessionId, CancellationToken cancellationToken)
+    {
+        var sessionService = new SessionService(_client);
+
+        Session session;
+        try
+        {
+            session = await sessionService.GetAsync(sessionId, new SessionGetOptions
+            {
+                Expand = new List<string> { "subscription" }
+            }, cancellationToken: cancellationToken);
+        }
+        catch (StripeException ex) when (ex.HttpStatusCode == HttpStatusCode.NotFound)
+        {
+            throw new NotFoundException("Checkout session", sessionId);
+        }
+
+        SubscriptionPlan? plan = null;
+        BillingInterval? interval = null;
+        SubscriptionStatus? status = null;
+        DateTime? canceledAt = null;
+
+        var subscription = session.Subscription;
+        if (subscription != null)
+        {
+            status = MapStatus(subscription.Status);
+            canceledAt = subscription.CanceledAt;
+            var priceId = subscription.Items.Data.FirstOrDefault()?.Price?.Id;
+            (plan, interval) = ResolvePlanFromPriceId(priceId);
+        }
+
+        return new Application.Common.Interfaces.Services.StripeWebhookEvent(
+            "checkout.session.completed",
+            session.SubscriptionId,
+            session.CustomerId,
+            plan,
+            interval,
+            status,
+            null,
+            null,
+            canceledAt);
     }
 
     public async Task CancelSubscriptionAtPeriodEndAsync(string stripeSubscriptionId, CancellationToken cancellationToken)

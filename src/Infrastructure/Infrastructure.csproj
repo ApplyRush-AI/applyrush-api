@@ -43,6 +43,7 @@
 		<PackageReference Include="NCrontab" Version="3.3.3" />
 		<PackageReference Include="NEST" Version="7.17.5" />
 		<PackageReference Include="NEST.JsonNetSerializer" Version="7.17.5" />
+		<PackageReference Include="QuestPDF" Version="2024.12.3" />
 		<PackageReference Include="Refit" Version="7.2.1" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="7.2.1" />
 		<PackageReference Include="Serilog" Version="4.0.2" />
