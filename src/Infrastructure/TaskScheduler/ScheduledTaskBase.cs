@@ -20,6 +20,10 @@ public abstract class ScheduledTaskBase : IHostedService
     protected abstract string Schedule { get; }
     protected abstract string Name { get; }
 
+    // When true, the task also runs once immediately on startup (and on every process restart),
+    // in addition to its schedule. Defaults to false so other tasks keep schedule-only behaviour.
+    protected virtual bool RunOnStartup => false;
+
     protected ILogger<ScheduledTaskBase> Logger { get; private set; }
 
     public ScheduledTaskBase(IServiceScopeFactory serviceScopeFactory)
@@ -27,7 +31,8 @@ public abstract class ScheduledTaskBase : IHostedService
         _stoppingCancellationTokenSource = new CancellationTokenSource();
         _serviceScopeFactory = serviceScopeFactory;
         _schedule = CrontabSchedule.Parse(Schedule);
-        _nextRun = _schedule.GetNextOccurrence(DateTime.Now);
+        // DateTime.MinValue guarantees the first loop iteration fires immediately when RunOnStartup is set.
+        _nextRun = RunOnStartup ? DateTime.MinValue : _schedule.GetNextOccurrence(DateTime.Now);
     }
 
     public virtual Task StartAsync(CancellationToken cancellationToken)

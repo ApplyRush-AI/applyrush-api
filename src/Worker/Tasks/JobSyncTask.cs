@@ -12,6 +12,9 @@ public sealed class JobSyncTask : ScheduledTaskBase
     protected override string Schedule => "0 0 */3 * *"; // every 3 days — conserves the 200 req/month free tier quota
     protected override string Name => "JobSync";
 
+    // Also run once on every Worker startup/restart, then follow the schedule above.
+    protected override bool RunOnStartup => true;
+
     public JobSyncTask(IServiceScopeFactory serviceScopeFactory)
         : base(serviceScopeFactory)
     {
