@@ -1,5 +1,6 @@
 ﻿using Application.Common.Behaviours;
 using Application.Common.Localization;
+using Application.Features.JobOffers.Mappings;
 using Application.Features.Users.Providers;
 using AutoMapper;
 using Domain.Entities.Users.Providers;
@@ -27,6 +28,9 @@ public static class DependencyInjection
             {
                 cfg.AddProfile(profile);
             }
+
+            cfg.AddProfile(new JobOfferMapperProfile(provider.GetRequiredService<IDateTime>()));
+            cfg.AddProfile(new JobDigestMapperProfile(provider.GetRequiredService<IDateTime>()));
 
             var dtoAssembly = Assembly.Load("DTO");
 

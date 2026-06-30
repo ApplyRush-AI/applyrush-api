@@ -7,6 +7,7 @@ public sealed class JobSyncStateData
     public JobSyncStatus Status { get; set; } = JobSyncStatus.Idle;
     public DateTime? LastSyncedAt { get; set; }
     public int JobsIndexed { get; set; }
+    public int FailedPages { get; set; }
     public string? ErrorMessage { get; set; }
 }
 

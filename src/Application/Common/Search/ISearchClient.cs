@@ -17,7 +17,9 @@ public interface ISearchClient<T> where T: class, ISearchable
     Task DeleteManyAsync(IEnumerable<T> data, CancellationToken cancellationToken = default);
     Task<bool> IndexExist(string index);
     Task<bool> CreateIndexIfNotExist(string index);
+    Task DeleteIndexAsync(string index, CancellationToken cancellationToken = default);
     Task<PaginatedList<UserSearchable>> SearchUsersAsync(IUserFullSearchCriteria criteria);
     Task<PaginatedList<NotificationSearchable>> SearchNotificationsForUserAsync(INotificationForUserFullSearchCriteria criteria);
     Task<PaginatedList<JobOfferSearchable>> SearchJobOffersAsync(IJobOfferFullSearchCriteria criteria);
+    Task<IReadOnlyList<JobOfferSearchable>> GetJobOffersByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
 }

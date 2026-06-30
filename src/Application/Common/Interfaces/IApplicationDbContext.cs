@@ -2,6 +2,7 @@
 using Domain.Entities.Jobs.JobApplications;
 using Domain.Entities.Jobs.JobListings;
 using Domain.Entities.Jobs.UserJobMatches;
+using Domain.Entities.Jobs.UserHiddenJobs;
 using Domain.Entities.Jobs.UserSavedJobs;
 using Domain.Entities.Languages;
 using Domain.Entities.Notifications;
@@ -61,6 +62,7 @@ public interface IApplicationDbContext
     DbSet<JobListing> JobListing { get; }
     DbSet<UserJobMatch> UserJobMatch { get; }
     DbSet<UserSavedJob> UserSavedJob { get; }
+    DbSet<UserHiddenJob> UserHiddenJob { get; }
     DbSet<JobApplication> JobApplication { get; }
 
     // Tailoring & Analysis

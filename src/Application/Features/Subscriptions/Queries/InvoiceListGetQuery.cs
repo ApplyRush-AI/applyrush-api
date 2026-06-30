@@ -1,9 +1,7 @@
-using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Interfaces.Request;
 using Application.Common.Interfaces.Request.Handlers;
 using Application.Common.Interfaces.Services;
-using Domain.Entities.Subscriptions.UserSubscriptions;
 using DTO.Subscription;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,8 +29,10 @@ public sealed class InvoiceListGetQueryHandler : IQueryHandler<InvoiceListGetQue
     {
         var subscription = await _dbContext.UserSubscription
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.UserId == _currentUserService.UserId, cancellationToken)
-            ?? throw NotFoundException.New<UserSubscription>();
+            .FirstOrDefaultAsync(s => s.UserId == _currentUserService.UserId, cancellationToken);
+
+        if (subscription == null)
+            return [];
 
         return await _stripeService.GetInvoicesAsync(subscription.StripeCustomerId, cancellationToken);
     }

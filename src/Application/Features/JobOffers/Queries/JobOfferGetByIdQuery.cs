@@ -34,17 +34,26 @@ public sealed class JobOfferGetByIdQueryHandler : IQueryHandler<JobOfferGetByIdQ
 
     public async Task<JobOfferDetailResponse> Handle(JobOfferGetByIdQuery request, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId!.Value;
+        var userId = _currentUserService.UserId;
 
-        var job = await _dbContext.JobListing
+        IQueryable<JobListing> query = _dbContext.JobListing
             .AsNoTracking()
-            .Include(j => j.UserMatches.Where(m => m.UserId == userId))
-            .Include(j => j.SavedByUsers.Where(s => s.UserId == userId))
+            .Include(j => j.JobFunctions)
+                .ThenInclude(jf => jf.JobFunction);
+
+        if (userId.HasValue)
+        {
+            query = query
+                .Include(j => j.UserMatches.Where(m => m.UserId == userId.Value))
+                .Include(j => j.SavedByUsers.Where(s => s.UserId == userId.Value));
+        }
+
+        var job = await query
             .FirstOrDefaultAsync(j => j.Id == request.JobId, cancellationToken)
             ?? throw NotFoundException.New<JobListing>();
 
-        if (!job.UserMatches.Any())
-            await _matchScoringService.ComputeAndSaveAsync(userId, job.Id, cancellationToken);
+        if (userId.HasValue && !job.UserMatches.Any())
+            await _matchScoringService.ComputeAndSaveAsync(userId.Value, job.Id, cancellationToken);
 
         return _mapper.Map<JobOfferDetailResponse>(job);
     }

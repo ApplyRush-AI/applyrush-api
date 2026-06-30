@@ -96,7 +96,7 @@ public sealed class GoogleAuthCommandHandler : ICommandHandler<GoogleAuthCommand
         await _userManager.AddToRoleAsync(user, UserRole.Customer);
 
         _identityContextAccessor.IdentityContext = new IdentityContextForApplicationCustom(new UserInfoById(user.Id));
-        await UserFoundationDataHelper.CreateAndSaveAsync(user.Id, _dbContext, _unitOfWork, cancellationToken);
+        await UserFoundationDataHelper.CreateAndSaveAsync(user.Id, _dbContext, _unitOfWork, _dateTime, cancellationToken);
 
         return user;
     }

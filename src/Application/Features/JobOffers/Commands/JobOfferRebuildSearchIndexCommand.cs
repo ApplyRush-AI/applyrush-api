@@ -39,16 +39,14 @@ public sealed class JobOfferRebuildSearchIndexCommandHandler : ICommandHandler<J
 
         try
         {
+            _logger.LogInformation("Dropping and recreating index: {0}", index);
+            await _searchClient.DeleteIndexAsync(index, cancellationToken);
             await _searchClient.CreateIndexIfNotExist(index);
-            _logger.LogInformation("Attempting to delete data for index: {0}", index);
-
-            await _searchClient.DeleteAllAsync(cancellationToken);
-
-            _logger.LogInformation("Delete finished for index: {0}", index);
+            _logger.LogInformation("Index recreated: {0}", index);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error while deleting Elastic index {0}", index);
+            _logger.LogError(ex, "Error while recreating Elastic index {0}", index);
         }
 
         try

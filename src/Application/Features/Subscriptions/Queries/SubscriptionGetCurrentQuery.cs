@@ -1,9 +1,10 @@
-using Application.Common.Exceptions;
+using Application.Common.Constants;
 using Application.Common.Interfaces;
 using Application.Common.Interfaces.Request;
 using Application.Common.Interfaces.Request.Handlers;
 using AutoMapper;
-using Domain.Entities.Subscriptions.UserSubscriptions;
+using DTO.Enums.Subscription;
+using DTO.Response;
 using DTO.Subscription;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,9 +32,18 @@ public sealed class SubscriptionGetCurrentQueryHandler : IQueryHandler<Subscript
     {
         var subscription = await _dbContext.UserSubscription
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.UserId == _currentUserService.UserId, cancellationToken)
-            ?? throw NotFoundException.New<UserSubscription>();
+            .FirstOrDefaultAsync(s => s.UserId == _currentUserService.UserId, cancellationToken);
 
-        return _mapper.Map<SubscriptionResponse>(subscription);
+        // A user with no subscription record is effectively on the Free plan — never 404 here.
+        return subscription == null
+            ? FreeSubscription()
+            : _mapper.Map<SubscriptionResponse>(subscription);
     }
+
+    private SubscriptionResponse FreeSubscription() => new()
+    {
+        Plan = _mapper.Map<ListItemBaseResponse>(SubscriptionPlan.Free),
+        Status = _mapper.Map<ListItemBaseResponse>(SubscriptionStatus.Active),
+        Price = SubscriptionPrices.Free
+    };
 }

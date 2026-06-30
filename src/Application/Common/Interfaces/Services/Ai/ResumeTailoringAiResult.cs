@@ -9,4 +9,5 @@ public sealed record ResumeTailoringAiResult
     public IReadOnlyList<TailoringExperienceAiItem> Experience { get; init; } = null!;
     public IReadOnlyList<string> HighlightedSkills { get; init; } = null!;
     public IReadOnlyList<string> MissingSkills { get; init; } = null!;
+    public IReadOnlyList<string> Changes { get; init; } = [];
 }

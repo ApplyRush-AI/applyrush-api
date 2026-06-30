@@ -11,5 +11,15 @@ public interface IJobOfferFullSearchCriteria : IFullSearchCriteria<JobOfferFeedS
     WorkModel? WorkModel { get; }
     ExperienceLevel? ExperienceLevel { get; }
     decimal? SalaryMin { get; }
+    decimal? SalaryMax { get; }
     string? Industry { get; }
+    int[]? JobFunctionIds { get; }
+    int? MinYearsOfExperience { get; }
+    int? MaxYearsOfExperience { get; }
+    string? Location { get; }
+    DateTime? PostedAfter { get; }
+    DateTime? PostedBefore { get; }
+    string[]? Skills { get; }
+    int[]? ExcludeIds { get; }
+    int[]? IncludeIds { get; }
 }
