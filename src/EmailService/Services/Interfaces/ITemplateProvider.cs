@@ -6,5 +6,6 @@
         string ParseHtmlWithParameters(string rawHtml, Dictionary<string, string?> parameters);
         Task<string> GetTemplateAsync(string templateFor, string templateName);
         Task<string> GetTemplateAsync(string templateFor, string templateName, Dictionary<string, string?> parameters);
+        Task<string> RenderAsync(string templateFor, string templateName, IDictionary<string, object?> model);
     }
 }
