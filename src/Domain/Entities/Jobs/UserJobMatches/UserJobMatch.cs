@@ -25,7 +25,7 @@ public sealed class UserJobMatch : BaseEntity
 
     public static UserJobMatch Create(IUserJobMatchUpsertData data)
     {
-        return new UserJobMatch
+        var match = new UserJobMatch
         {
             UserId = data.UserId,
             JobId = data.JobId,
@@ -38,6 +38,7 @@ public sealed class UserJobMatch : BaseEntity
             MatchTier = data.MatchTier,
             CalculatedAt = data.CalculatedAt
         };
+        return match;
     }
 
     public void Update(IUserJobMatchUpsertData data)

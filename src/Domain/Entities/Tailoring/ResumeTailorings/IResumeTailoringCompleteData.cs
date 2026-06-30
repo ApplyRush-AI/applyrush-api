@@ -8,4 +8,5 @@ public interface IResumeTailoringCompleteData
     decimal ScoreBefore { get; }
     decimal ScoreAfter { get; }
     TailoringStatus Status { get; }
+    IReadOnlyList<string> Changes { get; }
 }

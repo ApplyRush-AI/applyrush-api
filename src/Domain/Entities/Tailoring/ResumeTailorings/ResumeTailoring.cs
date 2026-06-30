@@ -22,12 +22,16 @@ public sealed class ResumeTailoring : BaseAuditableEntity
     public TailoringStatus Status { get; private set; }
     public string SectionsToEnhanceJson { get; private set; } = "[]";
     public string KeywordsToInjectJson { get; private set; } = "[]";
+    public string ChangesJson { get; private set; } = "[]";
 
     public IReadOnlyList<string> SectionsToEnhance =>
         JsonSerializer.Deserialize<List<string>>(SectionsToEnhanceJson) ?? [];
 
     public IReadOnlyList<string> KeywordsToInject =>
         JsonSerializer.Deserialize<List<string>>(KeywordsToInjectJson) ?? [];
+
+    public IReadOnlyList<string> Changes =>
+        JsonSerializer.Deserialize<List<string>>(ChangesJson) ?? [];
 
     public ApplicationUser User { get; } = null!;
     public Resume? Resume { get; } = null!;
@@ -58,6 +62,7 @@ public sealed class ResumeTailoring : BaseAuditableEntity
         TailoredContent = data.TailoredContent;
         ScoreBefore = data.ScoreBefore;
         ScoreAfter = data.ScoreAfter;
+        ChangesJson = JsonSerializer.Serialize(data.Changes);
         Status = data.Status;
         AddDomainEvent(new ResumeTailoringCompletedEvent(this));
     }

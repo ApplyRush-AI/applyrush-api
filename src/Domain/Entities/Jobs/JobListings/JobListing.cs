@@ -6,6 +6,7 @@ using Domain.Entities.Jobs.UserSavedJobs;
 using Domain.Events.Jobs;
 using DTO.Enums;
 using DTO.Enums.Job;
+using System.Collections.Generic;
 
 namespace Domain.Entities.Jobs.JobListings;
 
@@ -42,6 +43,7 @@ public sealed class JobListing : BaseAuditableEntity, IWithStatus
     public Status Status { get; private set; }
     public DateTime LastSyncedAt { get; private set; }
 
+    public ICollection<JobListingJobFunction> JobFunctions { get; } = new List<JobListingJobFunction>();
     public ICollection<UserJobMatch> UserMatches { get; } = new List<UserJobMatch>();
     public ICollection<UserSavedJob> SavedByUsers { get; } = new List<UserSavedJob>();
     public ICollection<JobApplication> Applications { get; } = new List<JobApplication>();
@@ -113,9 +115,24 @@ public sealed class JobListing : BaseAuditableEntity, IWithStatus
         LastSyncedAt = data.LastSyncedAt;
     }
 
-    public void Activate() 
-    {   
-        Status = Status.Active; 
+    public void SetJobFunctions(IEnumerable<int> jobFunctionIds)
+    {
+        JobFunctions.Clear();
+        foreach (var id in jobFunctionIds)
+            JobFunctions.Add(JobListingJobFunction.Create(id));
+    }
+
+    public void AppendUserMatches(IReadOnlyList<UserJobMatch> matches)
+    {
+        foreach (var match in matches)
+            UserMatches.Add(match);
+
+        AddDomainEvent(new JobUserMatchesComputedEvent(this));
+    }
+
+    public void Activate()
+    {
+        Status = Status.Active;
     }
 
     public void Deactivate() 
