@@ -59,8 +59,19 @@ public class AdminController : ApiControllerBase
     [HttpPost("search/reindex")]
     public async Task<IActionResult> ReindexSearch(CancellationToken ct)
     {
-        await Mediator.Send(new JobOfferRebuildSearchIndexCommand(), ct);
-        return Accepted();
+        var result = await Mediator.Send(new JobOfferRebuildSearchIndexCommand(), ct);
+
+        if (result.Succeeded)
+            return Ok(result);
+
+        // 503 rather than 500: the rebuild logic is fine, the search cluster it depends on is not.
+        return StatusCode(StatusCodes.Status503ServiceUnavailable, new ProblemDetails
+        {
+            Status = StatusCodes.Status503ServiceUnavailable,
+            Title = "Search index rebuild failed",
+            Detail = result.Error,
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.4"
+        });
     }
 
     [HttpPost("job-functions/link-all")]

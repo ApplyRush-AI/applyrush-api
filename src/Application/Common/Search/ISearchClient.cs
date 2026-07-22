@@ -15,6 +15,9 @@ public interface ISearchClient<T> where T: class, ISearchable
     Task DeleteAndRefreshAsync(int id, CancellationToken cancellationToken = default);
     Task DeleteAllAsync(CancellationToken cancellationToken = default);
     Task DeleteManyAsync(IEnumerable<T> data, CancellationToken cancellationToken = default);
+    // Real connectivity probe. IndexExist swallows its exceptions, so it cannot tell
+    // "the cluster is unreachable" apart from "the index is not there yet".
+    Task<bool> IsAvailableAsync();
     Task<bool> IndexExist(string index);
     Task<bool> CreateIndexIfNotExist(string index);
     Task DeleteIndexAsync(string index, CancellationToken cancellationToken = default);

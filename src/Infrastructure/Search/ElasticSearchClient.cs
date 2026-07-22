@@ -572,6 +572,8 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             return false;
         }
     }
+    public Task<bool> IsAvailableAsync() => IsElasticsearchAvailable();
+
     private async Task<bool> IsElasticsearchAvailable()
     {
         try
