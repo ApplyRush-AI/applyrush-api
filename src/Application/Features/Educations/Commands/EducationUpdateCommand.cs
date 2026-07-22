@@ -60,6 +60,7 @@ public sealed class EducationUpdateCommandValidator : AbstractValidator<Educatio
         RuleFor(c => c.Id).GreaterThan(0);
         RuleFor(c => c.School).NotEmpty().MaximumLength(200);
         RuleFor(c => c.Major).MaximumLength(200);
+        RuleFor(c => c.DegreeType).IsInEnum();
         RuleFor(c => c.Gpa).InclusiveBetween(0, 4).When(c => c.Gpa.HasValue);
     }
 }

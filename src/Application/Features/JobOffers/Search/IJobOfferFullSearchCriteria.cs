@@ -8,15 +8,17 @@ public interface IJobOfferFullSearchCriteria : IFullSearchCriteria<JobOfferFeedS
 {
     new string? Query { get; }
     JobType[]? JobTypes { get; }
-    WorkModel? WorkModel { get; }
-    ExperienceLevel? ExperienceLevel { get; }
+    // Multi-select filters. Property names are kept singular so the existing query-string
+    // contract still works (?WorkModel=1&WorkModel=2), and a single value behaves as before.
+    WorkModel[]? WorkModel { get; }
+    ExperienceLevel[]? ExperienceLevel { get; }
     decimal? SalaryMin { get; }
     decimal? SalaryMax { get; }
     string? Industry { get; }
     int[]? JobFunctionIds { get; }
     int? MinYearsOfExperience { get; }
     int? MaxYearsOfExperience { get; }
-    string? Location { get; }
+    string[]? Location { get; }
     DateTime? PostedAfter { get; }
     DateTime? PostedBefore { get; }
     string[]? Skills { get; }

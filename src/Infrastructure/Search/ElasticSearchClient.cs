@@ -328,23 +328,23 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             };
         }
 
-        if (criteria.WorkModel.HasValue)
+        if (criteria.WorkModel is { Length: > 0 })
         {
             hasFilters = true;
-            combinedQuery &= new TermQuery
+            combinedQuery &= new TermsQuery
             {
                 Field = "workModel.id",
-                Value = (int)criteria.WorkModel.Value
+                Terms = criteria.WorkModel.Select(wm => (object)(int)wm).ToList()
             };
         }
 
-        if (criteria.ExperienceLevel.HasValue)
+        if (criteria.ExperienceLevel is { Length: > 0 })
         {
             hasFilters = true;
-            combinedQuery &= new TermQuery
+            combinedQuery &= new TermsQuery
             {
                 Field = "experienceLevel.id",
-                Value = (int)criteria.ExperienceLevel.Value
+                Terms = criteria.ExperienceLevel.Select(el => (object)(int)el).ToList()
             };
         }
 
@@ -371,7 +371,14 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
         if (!string.IsNullOrWhiteSpace(criteria.Industry))
         {
             hasFilters = true;
-            combinedQuery &= BuildWildcardQuery("industry", criteria.Industry);
+            // Industry values are multi-word ("Electrical Engineering", "Software/Internet/AI"). A wildcard
+            // is evaluated against single analyzed tokens, so it never matches a multi-word value. Matching
+            // the phrase handles both single- and multi-word industries and stays case-insensitive.
+            combinedQuery &= new MatchPhraseQuery
+            {
+                Field = "industry",
+                Query = criteria.Industry
+            };
         }
 
         if (criteria.JobFunctionIds is { Length: > 0 })
@@ -395,10 +402,17 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             };
         }
 
-        if (!string.IsNullOrWhiteSpace(criteria.Location))
+        if (criteria.Location is { Length: > 0 })
         {
-            hasFilters = true;
-            combinedQuery &= BuildWildcardQuery("location", criteria.Location);
+            var locations = criteria.Location.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+            if (locations.Count > 0)
+            {
+                hasFilters = true;
+                // OR across the provided locations, mirroring how the Skills filter aggregates.
+                var locationQuery = locations
+                    .Aggregate(new QueryContainer(), (acc, location) => acc | BuildWildcardQuery("location", location));
+                combinedQuery &= locationQuery;
+            }
         }
 
         if (criteria.Skills is { Length: > 0 })
