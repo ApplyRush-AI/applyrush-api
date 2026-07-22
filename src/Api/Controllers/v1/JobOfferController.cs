@@ -43,6 +43,20 @@ public class JobOfferController : ApiControllerBase
         return Ok(await Mediator.Send(new JobOfferIndustriesGetQuery(), ct));
     }
 
+    [HttpGet("locations")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetLocations(CancellationToken ct)
+    {
+        return Ok(await Mediator.Send(new JobOfferLocationsGetQuery(), ct));
+    }
+
+    [HttpPost("backfill-industries")]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> BackfillIndustries(CancellationToken ct)
+    {
+        return Ok(await Mediator.Send(new JobOfferBackfillIndustriesCommand(), ct));
+    }
+
     [HttpPost("rebuild-index")]
     [Authorize(Roles = "Administrator")]
     public async Task<IActionResult> RebuildIndex(CancellationToken ct)

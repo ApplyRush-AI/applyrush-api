@@ -61,22 +61,22 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
             // Search the provider by the top-level categories only, to keep the request count low
             // (~19 categories instead of ~288 leaves). Slashes in category names are turned into commas
             // so JSearch treats them as separate OR-terms (e.g. "Software/Internet/AI" -> "Software, Internet, AI").
-            var queries = (await _dbContext.JobFunction
+            var categories = (await _dbContext.JobFunction
                     .Where(f => f.Status == Status.Active && f.ParentId == null)
                     .Select(f => f.Name)
                     .ToListAsync(cancellationToken))
-                .Select(name => name.Replace("/", ", "))
+                .Select(name => (Category: name, Query: name.Replace("/", ", ")))
                 .ToList();
 
-            _logger.LogInformation("[JobSync] Starting sync for {Count} categories.", queries.Count);
+            _logger.LogInformation("[JobSync] Starting sync for {Count} categories.", categories.Count);
 
-            foreach (var query in queries)
+            foreach (var (category, query) in categories)
             {
                 for (var page = 1; page <= command.PagesPerQuery; page++)
                 {
                     try
                     {
-                        var pageIndexed = await SyncPageAsync(query, page, matchFunctions.Select(f => (f.Id, f.Name)).ToList(), cancellationToken);
+                        var pageIndexed = await SyncPageAsync(query, category, page, matchFunctions.Select(f => (f.Id, f.Name)).ToList(), cancellationToken);
                         if (pageIndexed == 0)
                             break;
                         jobsIndexed += pageIndexed;
@@ -119,11 +119,17 @@ public sealed class JobSyncCommandHandler : ICommandHandler<JobSyncCommand>
         }
     }
 
-    private async Task<int> SyncPageAsync(string query, int page, List<(int Id, string Name)> jobFunctions, CancellationToken cancellationToken)
+    private async Task<int> SyncPageAsync(string query, string category, int page, List<(int Id, string Name)> jobFunctions, CancellationToken cancellationToken)
     {
         var jobs = await _jobProvider.FetchJobsAsync(query, page, cancellationToken);
         if (jobs.Count == 0)
             return 0;
+
+        // The provider rarely returns an industry (JSearch employer_company_type is mostly null), so fall
+        // back to the category the job was found under. Keeps the Industry filter usable.
+        jobs = jobs
+            .Select(j => string.IsNullOrWhiteSpace(j.Industry) ? j with { Industry = category } : j)
+            .ToList();
 
         var externalIds = jobs.Select(j => j.ExternalId).ToList();
         var existingJobs = await _dbContext.JobListing

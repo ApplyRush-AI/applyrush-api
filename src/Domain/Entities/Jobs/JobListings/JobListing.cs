@@ -122,6 +122,11 @@ public sealed class JobListing : BaseAuditableEntity, IWithStatus
             JobFunctions.Add(JobListingJobFunction.Create(id));
     }
 
+    public void SetIndustry(string industry)
+    {
+        Industry = industry;
+    }
+
     public void AppendUserMatches(IReadOnlyList<UserJobMatch> matches)
     {
         foreach (var match in matches)

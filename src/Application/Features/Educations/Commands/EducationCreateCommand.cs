@@ -18,7 +18,7 @@ public sealed record EducationCreateCommand(
     string? Major,
     DegreeType DegreeType,
     decimal? Gpa,
-    DateOnly StartDate,
+    DateOnly? StartDate,
     DateOnly? EndDate,
     bool IsCurrent
     ) : ICommand<EducationItemResponse>;
@@ -75,6 +75,7 @@ public sealed class EducationCreateCommandValidator : AbstractValidator<Educatio
     {
         RuleFor(c => c.School).NotEmpty().MaximumLength(200);
         RuleFor(c => c.Major).MaximumLength(200);
+        RuleFor(c => c.DegreeType).IsInEnum();
         RuleFor(c => c.Gpa).InclusiveBetween(0, 4).When(c => c.Gpa.HasValue);
     }
 }
