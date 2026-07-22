@@ -31,8 +31,19 @@ public sealed class AdminSearchHealthGetQueryHandler : IQueryHandler<AdminSearch
         try
         {
             var index = _searchIndexProvider.GetIndex<JobOfferSearchable>();
+
+            // Ping first: IndexExist catches its own exceptions and returns false, so on its own it would
+            // report a dead cluster as "reachable, index missing" - which is exactly how this was misread.
+            var reachable = await _searchClient.IsAvailableAsync();
+            if (!reachable)
+                return new AdminSearchHealthResponse(false, false, "Elasticsearch did not respond to a ping. Job search will return no results until the cluster is reachable.");
+
             var indexExists = await _searchClient.IndexExist(index);
-            return new AdminSearchHealthResponse(true, indexExists, null);
+            var error = indexExists
+                ? null
+                : $"Elasticsearch is reachable but the '{index}' index does not exist. Run POST /Admin/search/reindex to rebuild it.";
+
+            return new AdminSearchHealthResponse(true, indexExists, error);
         }
         catch (Exception ex)
         {
