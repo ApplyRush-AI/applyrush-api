@@ -1,7 +1,7 @@
 using Domain.Entities.Profiles.Educations;
 using DTO.Enums.Profile.Education;
 
-namespace Worker.Consumers.Resumes.Data;
+namespace Application.Features.Resumes.Data;
 
 internal sealed record ParsedEducationInsertData(
     int UserProfileId,
@@ -9,6 +9,7 @@ internal sealed record ParsedEducationInsertData(
     string? Major,
     DegreeType DegreeType,
     decimal? Gpa,
+    GpaScale GpaScale,
     DateOnly? StartDate,
     DateOnly? EndDate,
     bool IsCurrent) : IEducationInsertData;

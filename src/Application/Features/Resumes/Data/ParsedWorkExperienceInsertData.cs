@@ -2,7 +2,7 @@ using Domain.Entities.Profiles.WorkExpeciences;
 using Domain.Entities.Profiles.WorkExperiences;
 using DTO.Enums.Job;
 
-namespace Worker.Consumers.Resumes.Data;
+namespace Application.Features.Resumes.Data;
 
 internal sealed record ParsedWorkExperienceInsertData(
     int UserProfileId,

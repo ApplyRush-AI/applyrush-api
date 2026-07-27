@@ -9,6 +9,7 @@ public sealed record EducationCreateData(
     string? Major,
     DegreeType DegreeType,
     decimal? Gpa,
+    GpaScale GpaScale,
     DateOnly? StartDate,
     DateOnly? EndDate,
     bool IsCurrent

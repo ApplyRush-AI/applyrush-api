@@ -161,6 +161,7 @@ public sealed class ResumeSetPrimaryCommandHandler : ICommandHandler<ResumeSetPr
                 item.Major,
                 ParseDegreeType(item.Degree),
                 item.Gpa,
+                GpaScale.FourPoint, // resume-derived GPA has no stated scale; default to 4.0
                 ParseDate(item.StartDate),
                 ParseDate(item.EndDate),
                 item.IsCurrent), order++));

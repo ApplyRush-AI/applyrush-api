@@ -47,4 +47,11 @@ public sealed class EeoData : BaseAuditableEntity
     {
         WorkAuthorization = value;
     }
+
+    // Resume import only ever fills gaps — a value the user already set is never overwritten.
+    public void FillMissingFromResume(WorkAuthorization? workAuthorization, bool? sponsorshipNeeded)
+    {
+        WorkAuthorization ??= workAuthorization;
+        SponsorshipNeeded ??= sponsorshipNeeded;
+    }
 }
