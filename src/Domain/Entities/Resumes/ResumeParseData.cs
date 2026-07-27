@@ -16,6 +16,10 @@ public sealed record ResumeParseData
     public string? WebsiteUrl { get; init; }
     public string? Title { get; init; }
     public string? Bio { get; init; }
+    // EEO: only the two fields that genuinely appear on a resume are parsed; the demographic fields
+    // (gender, race, veteran, disability, orientation) stay user-entered and are never inferred.
+    public string? WorkAuthorization { get; init; }
+    public bool? SponsorshipNeeded { get; init; }
     public IReadOnlyList<string> Skills { get; init; } = [];
     public IReadOnlyList<ResumeParseExperienceItem> Experience { get; init; } = [];
     public IReadOnlyList<ResumeParseEducationItem> Education { get; init; } = [];

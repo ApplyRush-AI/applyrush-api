@@ -46,6 +46,10 @@ public sealed class EnumsController : ApiControllerBase
     public async Task<IActionResult> GetDegreeTypes(CancellationToken ct)
         => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(DegreeType)), ct));
 
+    [HttpGet("gpa-scales")]
+    public async Task<IActionResult> GetGpaScales(CancellationToken ct)
+        => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(GpaScale)), ct));
+
     [HttpGet("location-modes")]
     public async Task<IActionResult> GetLocationModes(CancellationToken ct)
         => Ok(await Mediator.Send(new GetEnumValuesQuery(typeof(LocationMode)), ct));

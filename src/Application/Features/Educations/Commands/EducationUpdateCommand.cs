@@ -1,3 +1,4 @@
+using Application.Common.Localization.Extensions;
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Interfaces.Request;
@@ -19,7 +20,8 @@ public sealed record EducationUpdateCommand(
     decimal? Gpa,
     DateOnly? StartDate,
     DateOnly? EndDate,
-    bool IsCurrent
+    bool IsCurrent,
+    GpaScale GpaScale = GpaScale.FourPoint
     ) : ICommand, IEducationUpdateData;
 
 public sealed class EducationUpdateCommandHandler : ICommandHandler<EducationUpdateCommand>
@@ -61,6 +63,11 @@ public sealed class EducationUpdateCommandValidator : AbstractValidator<Educatio
         RuleFor(c => c.School).NotEmpty().MaximumLength(200);
         RuleFor(c => c.Major).MaximumLength(200);
         RuleFor(c => c.DegreeType).IsInEnum();
-        RuleFor(c => c.Gpa).InclusiveBetween(0, 4).When(c => c.Gpa.HasValue);
+        RuleFor(c => c.GpaScale).IsInEnum();
+        RuleFor(c => c.Gpa).GreaterThanOrEqualTo(0).When(c => c.Gpa.HasValue);
+        RuleFor(c => c.Gpa)
+            .Must((cmd, gpa) => gpa <= cmd.GpaScale.MaxValue())
+            .When(c => c.Gpa.HasValue && c.GpaScale.MaxValue() != null)
+            .WithLocalizationKey("education.gpa.scaleRange.message", c => new object[] { c.GpaScale.MaxValue()! });
     }
 }
