@@ -1,6 +1,6 @@
 using Domain.Entities.Profiles.WorkExpeciences.WorkExperienceBullets;
 
-namespace Worker.Consumers.Resumes.Data;
+namespace Application.Features.Resumes.Data;
 
 internal sealed record ParsedBulletInsertData(
     int WorkExperienceId,

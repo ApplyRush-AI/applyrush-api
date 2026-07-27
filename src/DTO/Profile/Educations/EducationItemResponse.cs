@@ -9,6 +9,7 @@ public record EducationItemResponse
     public string? Major { get; init; }
     public ListItemBaseResponse DegreeType { get; init; } = null!;
     public decimal? Gpa { get; init; }
+    public ListItemBaseResponse GpaScale { get; init; } = null!;
     public DateOnly? StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
     public bool IsCurrent { get; init; }

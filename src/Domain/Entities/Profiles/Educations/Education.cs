@@ -15,6 +15,7 @@ public sealed class Education : BaseAuditableEntity, IWithStatus
     public string? Major { get; private set; }
     public DegreeType DegreeType { get; private set; }
     public decimal? Gpa { get; private set; }
+    public GpaScale GpaScale { get; private set; }
     public DateOnly? StartDate { get; private set; }
     public DateOnly? EndDate { get; private set; }
     public bool IsCurrent { get; private set; }
@@ -32,6 +33,7 @@ public sealed class Education : BaseAuditableEntity, IWithStatus
             Major = data.Major,
             DegreeType = data.DegreeType,
             Gpa = data.Gpa,
+            GpaScale = data.GpaScale,
             StartDate = data.StartDate,
             EndDate = data.EndDate,
             IsCurrent = data.IsCurrent,
@@ -46,6 +48,7 @@ public sealed class Education : BaseAuditableEntity, IWithStatus
         Major = data.Major;
         DegreeType = data.DegreeType;
         Gpa = data.Gpa;
+        GpaScale = data.GpaScale;
         StartDate = data.StartDate;
         EndDate = data.EndDate;
         IsCurrent = data.IsCurrent;

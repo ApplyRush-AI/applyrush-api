@@ -29,9 +29,9 @@ public sealed class ProfileMapperProfile : Profile
 
         CreateMap<WorkExperienceBullet, WorkExperienceBulletResponse>();
 
-        CreateMap<Education, EducationItemResponse>()
-            .ForMember(d => d.DegreeType, opt => opt.MapFrom(s =>
-                new ListItemBaseResponse { Id = (int)s.DegreeType, Name = s.DegreeType.ToString() }));
+        // DegreeType and GpaScale are enums; the global enum -> ListItemBaseResponse map handles them with
+        // localized names, so no per-member mapping (and no .ToString()) is needed here.
+        CreateMap<Education, EducationItemResponse>();
 
         CreateMap<EeoData, EeoDataResponse>();
     }
