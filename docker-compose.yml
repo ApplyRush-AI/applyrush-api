@@ -68,6 +68,7 @@ services:
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
       - JSearch__ApiKey=${JSEARCH_API_KEY}
+      - SearchConfig__Password=${ELASTIC_PASSWORD}
 
   emailservice:
     image: applyrush/emailservice
@@ -90,6 +91,7 @@ services:
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
       - JSearch__ApiKey=${JSEARCH_API_KEY}
+      - SearchConfig__Password=${ELASTIC_PASSWORD}
 
   worker:
     image: applyrush/worker
@@ -115,6 +117,7 @@ services:
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
       - JSearch__ApiKey=${JSEARCH_API_KEY}
+      - SearchConfig__Password=${ELASTIC_PASSWORD}
 
   notificationservice:
     image: applyrush/notificationservice
@@ -140,6 +143,7 @@ services:
       - Stripe__CheckoutSuccessUrl=${STRIPE_CHECKOUT_SUCCESS_URL}
       - Stripe__CheckoutCancelUrl=${STRIPE_CHECKOUT_CANCEL_URL}
       - JSearch__ApiKey=${JSEARCH_API_KEY}
+      - SearchConfig__Password=${ELASTIC_PASSWORD}
 
   redis:
     container_name: applyrush_redis
