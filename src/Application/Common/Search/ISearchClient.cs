@@ -25,4 +25,7 @@ public interface ISearchClient<T> where T: class, ISearchable
     Task<PaginatedList<NotificationSearchable>> SearchNotificationsForUserAsync(INotificationForUserFullSearchCriteria criteria);
     Task<PaginatedList<JobOfferSearchable>> SearchJobOffersAsync(IJobOfferFullSearchCriteria criteria);
     Task<IReadOnlyList<JobOfferSearchable>> GetJobOffersByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default);
+    // Returns the ids of every job offer matching the criteria's filters (ignoring paging/sorting).
+    // Used by the match-score sort path, which orders in the DB but must still honour the search filters.
+    Task<IReadOnlyList<int>> GetMatchingJobOfferIdsAsync(IJobOfferFullSearchCriteria criteria, CancellationToken cancellationToken = default);
 }
