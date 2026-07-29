@@ -409,8 +409,11 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             {
                 hasFilters = true;
                 // OR across the provided locations, mirroring how the Skills filter aggregates.
+                // Uses match_phrase (not wildcard): the location field is analyzed text, so a wildcard
+                // over a multi-word value like "Washington, District of Columbia, US" never matches a
+                // single indexed token. A phrase query matches the tokens in order, case-insensitively.
                 var locationQuery = locations
-                    .Aggregate(new QueryContainer(), (acc, location) => acc | BuildWildcardQuery("location", location));
+                    .Aggregate(new QueryContainer(), (acc, location) => acc | BuildMatchPhraseQuery("location", location));
                 combinedQuery &= locationQuery;
             }
         }
@@ -479,6 +482,17 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             Field = field, // Field to search
             Value = "*" + query.ToLowerInvariant() + "*", // Add wildcards to both sides of the query term
             Rewrite = MultiTermQueryRewrite.ConstantScore // Optional: Set the rewrite method
+        };
+    }
+
+    // Phrase match over an analyzed text field: matches the query's tokens in order, case-insensitively.
+    // Use this (not BuildWildcardQuery) for multi-word values such as a full "City, State, Country" location.
+    private QueryContainer BuildMatchPhraseQuery(string field, string query)
+    {
+        return new MatchPhraseQuery
+        {
+            Field = field,
+            Query = query
         };
     }
     private PropertyInfo FindProperty(Type type, string propertyName)
