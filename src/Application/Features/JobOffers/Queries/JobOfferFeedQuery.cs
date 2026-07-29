@@ -113,6 +113,15 @@ public sealed class JobOfferFeedQueryHandler : IQueryHandler<JobOfferFeedQuery, 
                 : matchQuery.Where(m => !hiddenJobIds.Contains(m.JobId));
         }
 
+        // Match scores live in the DB and are sorted here, but the search filters (location, industry,
+        // salary, etc.) live in Elasticsearch. Constrain the ranking to the ids that pass those filters,
+        // otherwise sorting by match score would silently ignore every filter the user applied.
+        if (HasActiveSearchFilters(criteria))
+        {
+            var filteredJobIds = await _searchClient.GetMatchingJobOfferIdsAsync(criteria, cancellationToken);
+            matchQuery = matchQuery.Where(m => filteredJobIds.Contains(m.JobId));
+        }
+
         var totalCount = await matchQuery.CountAsync(cancellationToken);
 
         var pagedMatches = await (descending
@@ -137,6 +146,24 @@ public sealed class JobOfferFeedQueryHandler : IQueryHandler<JobOfferFeedQuery, 
 
         return new PaginatedList<JobOfferSearchable>(items, totalCount, pageNumber, pageSize);
     }
+
+    // True when any Elasticsearch-side filter is set. Hidden jobs are handled separately (in the DB query
+    // above), so they are intentionally not included here.
+    private static bool HasActiveSearchFilters(JobOfferFeedQuery criteria) =>
+        !string.IsNullOrWhiteSpace(criteria.Query)
+        || criteria.JobTypes is { Length: > 0 }
+        || criteria.WorkModel is { Length: > 0 }
+        || criteria.ExperienceLevel is { Length: > 0 }
+        || criteria.SalaryMin.HasValue
+        || criteria.SalaryMax.HasValue
+        || !string.IsNullOrWhiteSpace(criteria.Industry)
+        || criteria.JobFunctionIds is { Length: > 0 }
+        || criteria.MinYearsOfExperience.HasValue
+        || criteria.MaxYearsOfExperience.HasValue
+        || criteria.Location is { Length: > 0 }
+        || criteria.PostedAfter.HasValue
+        || criteria.PostedBefore.HasValue
+        || criteria.Skills is { Length: > 0 };
 
     private async Task<PaginatedList<JobOfferSearchable>> MergeMatchScoresAsync(
         PaginatedList<JobOfferSearchable> result, int? userId, int pageSize, CancellationToken cancellationToken)

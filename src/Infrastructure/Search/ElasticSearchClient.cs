@@ -17,6 +17,10 @@ namespace Infrastructure.Search;
 
 public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearchable
 {
+    // Upper bound on how many filter-matching job ids the match-score sort will rank in the DB.
+    // Well above the live job count; the default ES result window is 10,000.
+    private const int MaxMatchSortCandidates = 10000;
+
     private readonly IElasticClient _elasticClient;
     private readonly ISearchIndexProvider _searchIndexProvider;
     private readonly ILogger<ElasticSearchClient<T>> _logger;
@@ -117,6 +121,26 @@ public class ElasticSearchClient<T> : ISearchClient<T> where T : class, ISearcha
             _logger.LogError("Elasticsearch job offer search failed: {DebugInformation}", searchResponse.DebugInformation);
 
         return new PaginatedList<JobOfferSearchable>(searchResponse.Documents.ToList(), (int)searchResponse.Total, criteria.Paging.PageNumber, criteria.Paging.PageSize);
+    }
+
+    public async Task<IReadOnlyList<int>> GetMatchingJobOfferIdsAsync(IJobOfferFullSearchCriteria criteria, CancellationToken cancellationToken = default)
+    {
+        var response = await _elasticClient.SearchAsync<JobOfferSearchable>(s => s
+            .Index(_index)
+            .Query(q => BuildJobOfferSearchQuery(q, criteria))
+            .Source(false) // only the ids are needed; the page of documents is fetched separately by the caller
+            .Size(MaxMatchSortCandidates), cancellationToken);
+
+        if (!response.IsValid)
+        {
+            _logger.LogError("Elasticsearch job offer id search failed: {DebugInformation}", response.DebugInformation);
+            return [];
+        }
+
+        if (response.Total > response.Hits.Count)
+            _logger.LogWarning("Match-sort filter matched {Total} job offers but only the first {Cap} are considered for scoring", response.Total, MaxMatchSortCandidates);
+
+        return response.Hits.Select(h => int.Parse(h.Id)).ToList();
     }
 
     public async Task<IReadOnlyList<JobOfferSearchable>> GetJobOffersByIdsAsync(IEnumerable<int> ids, CancellationToken cancellationToken = default)
