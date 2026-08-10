@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using DTO.Enums.Job;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -15,6 +16,7 @@ public sealed class JSearchJobProvider : IJobProvider
     private readonly JSearchOptions _options;
     private readonly IDateTime _dateTime;
     private readonly ILogger<JSearchJobProvider> _logger;
+    private DateTime _lastRequestAt = DateTime.MinValue;
 
     public JSearchJobProvider(
         IHttpClientFactory httpClientFactory,
@@ -36,8 +38,7 @@ public sealed class JSearchJobProvider : IJobProvider
         client.DefaultRequestHeaders.Add("x-rapidapi-host", "jsearch.p.rapidapi.com");
 
         var url = $"search-v2?query={Uri.EscapeDataString(query)}&page={page}&num_pages=1&country=us&date_posted=all";
-        var response = await client.GetAsync(url, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        var response = await SendThrottledAsync(client, url, cancellationToken);
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
         var node = JsonNode.Parse(json);
@@ -63,6 +64,36 @@ public sealed class JSearchJobProvider : IJobProvider
         }
 
         return results;
+    }
+
+    // JSearch rejects bursts with 429 long before the monthly quota is reached, so requests are
+    // paced RequestDelayMs apart and 429/5xx responses are retried with a growing delay,
+    // honoring the Retry-After header when the API provides one.
+    private async Task<HttpResponseMessage> SendThrottledAsync(HttpClient client, string url, CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; ; attempt++)
+        {
+            var wait = TimeSpan.FromMilliseconds(_options.RequestDelayMs) - (_dateTime.Now - _lastRequestAt);
+            if (wait > TimeSpan.Zero)
+                await Task.Delay(wait, cancellationToken);
+
+            _lastRequestAt = _dateTime.Now;
+            var response = await client.GetAsync(url, cancellationToken);
+
+            var retryable = response.StatusCode == HttpStatusCode.TooManyRequests || (int)response.StatusCode >= 500;
+            if (!retryable || attempt > _options.RetryAttempts)
+            {
+                response.EnsureSuccessStatusCode();
+                return response;
+            }
+
+            var delay = response.Headers.RetryAfter?.Delta ?? TimeSpan.FromSeconds(Math.Pow(2, attempt));
+            _logger.LogWarning(
+                "[JSearch] Got {Status} (attempt {Attempt}/{Max}), retrying in {Delay:0.#}s.",
+                (int)response.StatusCode, attempt, _options.RetryAttempts, delay.TotalSeconds);
+            response.Dispose();
+            await Task.Delay(delay, cancellationToken);
+        }
     }
 
     private JobListingData MapJob(JsonNode item)
