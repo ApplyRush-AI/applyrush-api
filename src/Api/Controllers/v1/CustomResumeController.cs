@@ -1,10 +1,17 @@
 using Application.Features.CustomResumes.Commands;
+using Application.Features.CustomResumes.Queries;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers.v1;
 
 public class CustomResumeController : ApiControllerBase
 {
+    [HttpGet("gap-analysis")]
+    public async Task<IActionResult> GapAnalysis([FromQuery] int jobId, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new CustomResumeGapAnalysisQuery(jobId), cancellationToken));
+    }
+
     [HttpPost("generate")]
     public async Task<IActionResult> Generate([FromBody] CustomResumeGenerateCommand command)
     {
