@@ -60,7 +60,8 @@ public sealed class CustomResumePdfService : ICustomResumePdfService
 
     private static ResolvedStyle Resolve(TailoredResumeStyle s)
     {
-        var compact = s.Template == ResumeTemplate.Compact ? 0.78f : 1f;
+        // Compact tightens vertical spacing noticeably (the old 0.78 was too subtle to read as a distinct template).
+        var compact = s.Template == ResumeTemplate.Compact ? 0.6f : 1f;
         var fit = s.FitToOnePage ? 0.85f : 1f;
         var scale = compact * fit;
 
@@ -148,9 +149,15 @@ public sealed class CustomResumePdfService : ICustomResumePdfService
         _ => c.AlignLeft()
     };
 
+    // The Centered template centers the section titles (Summary, Experience, ...). The top header block is
+    // aligned separately by HeaderAlignment; the template does not touch it.
     private static void SectionTitle(ColumnDescriptor col, string title, ResolvedStyle st)
     {
-        col.Item().PaddingTop(st.EntrySpacing * 0.6f).Text(title.ToUpperInvariant()).FontSize(st.SectionSize).Bold().FontColor(st.Accent).LetterSpacing(0.05f);
+        var titleItem = col.Item().PaddingTop(st.EntrySpacing * 0.6f);
+        if (st.Template == ResumeTemplate.Centered)
+            titleItem = titleItem.AlignCenter();
+
+        titleItem.Text(title.ToUpperInvariant()).FontSize(st.SectionSize).Bold().FontColor(st.Accent).LetterSpacing(0.05f);
         col.Item().PaddingBottom(2).LineHorizontal(0.75f).LineColor(Rule);
     }
 
