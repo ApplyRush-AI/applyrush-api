@@ -16,13 +16,18 @@ public static class JobOfferDisplayFormatter
         return $"Up to {symbol}{FormatAmount(max!.Value)}";
     }
 
+    // `now` and `postedAt` are both UTC (IDateTime.Now returns UtcNow, postedAt is stored/indexed as UTC).
+    // "Just now" is reserved for under a minute; below the hour we report whole minutes so a job posted
+    // ~20 minutes ago no longer collapses to "Just now".
     public static string FormatTimeAgo(DateTime postedAt, DateTime now)
     {
         var diff = now - postedAt;
-        return diff.TotalDays >= 1
-            ? $"{(int)diff.TotalDays}d ago"
-            : diff.TotalHours >= 1
-                ? $"{(int)diff.TotalHours}h ago"
-                : "Just now";
+        if (diff.TotalDays >= 1)
+            return $"{(int)diff.TotalDays}d ago";
+        if (diff.TotalHours >= 1)
+            return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalMinutes >= 1)
+            return $"{(int)diff.TotalMinutes}m ago";
+        return "Just now";
     }
 }
