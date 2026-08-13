@@ -13,6 +13,7 @@ using Infrastructure.Services;
 using Infrastructure.Services.Cities;
 using Infrastructure.Services.Configuration;
 using Infrastructure.Services.JobSync;
+using Infrastructure.Services.Skills;
 using Infrastructure.Common.Extensions;
 using Microsoft.Extensions.Configuration;
 using System.Reflection;
@@ -42,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IExtensionAnswerAiService, ExtensionAnswerAiService>();
         services.AddSingleton<ICityProvider, EmbeddedCityProvider>();
+        services.AddSingleton<IJobSkillExtractor, EmbeddedJobSkillExtractor>();
         services.AddClaude();
         services.AddJobSync();
         services.AddScoped<IResumeParseService, ResumeParseService>();

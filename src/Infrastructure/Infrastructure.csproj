@@ -74,6 +74,7 @@
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\us-cities.json" />
+	  <EmbeddedResource Include="Resources\skills-dictionary.json" />
 	</ItemGroup>
 
 </Project>
