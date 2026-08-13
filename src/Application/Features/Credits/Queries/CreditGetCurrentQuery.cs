@@ -1,11 +1,9 @@
-using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Interfaces.Request;
 using Application.Common.Interfaces.Request.Handlers;
-using Domain.Entities.Subscriptions.UserCredits;
+using Application.Common.Interfaces.Services;
 using Domain.Interfaces;
 using DTO.Subscription;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Credits.Queries;
 
@@ -14,25 +12,24 @@ public sealed record CreditGetCurrentQuery : IQuery<UserCreditResponse>;
 public sealed class CreditGetCurrentQueryHandler : IQueryHandler<CreditGetCurrentQuery, UserCreditResponse>
 {
     private readonly ICurrentUserService _currentUserService;
-    private readonly IApplicationDbContext _dbContext;
+    private readonly ICreditService _creditService;
     private readonly IDateTime _dateTimeProvider;
 
     public CreditGetCurrentQueryHandler(
         ICurrentUserService currentUserService,
-        IApplicationDbContext dbContext,
+        ICreditService creditService,
         IDateTime dateTimeProvider)
     {
         _currentUserService = currentUserService;
-        _dbContext = dbContext;
+        _creditService = creditService;
         _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<UserCreditResponse> Handle(CreditGetCurrentQuery query, CancellationToken cancellationToken)
     {
-        var credit = await _dbContext.UserCredit
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.UserId == _currentUserService.UserId, cancellationToken)
-            ?? throw NotFoundException.New<UserCredit>();
+        // Back-fills a default free-tier row if the user has none, so opening the credits screen before ever
+        // spending a credit returns the allocation instead of a 404 (mirrors the spend path).
+        var credit = await _creditService.GetOrCreateCreditAsync(_currentUserService.UserId!.Value, cancellationToken);
 
         static int Remaining(int total, int used) => total == -1 ? -1 : total - used;
 
@@ -55,4 +52,3 @@ public sealed class CreditGetCurrentQueryHandler : IQueryHandler<CreditGetCurren
         );
     }
 }
-

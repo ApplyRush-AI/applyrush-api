@@ -23,25 +23,25 @@ public sealed class CreditService : ICreditService
 
     public async Task<int> GetTailoringCreditsRemainingAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         return credit.TailoringCreditsTotal == -1 ? -1 : credit.TailoringCreditsTotal - credit.TailoringCreditsUsed;
     }
 
     public async Task<int> GetAnalysisCreditsRemainingAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         return credit.AnalysisCreditsTotal == -1 ? -1 : credit.AnalysisCreditsTotal - credit.AnalysisCreditsUsed;
     }
 
     public async Task<int> GetAutofillCreditsRemainingAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         return credit.AutofillCreditsTotal == -1 ? -1 : credit.AutofillCreditsTotal - credit.AutofillCreditsUsed;
     }
 
     public async Task DeductTailoringCreditAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         if (credit.TailoringCreditsTotal != -1 && credit.TailoringCreditsUsed >= credit.TailoringCreditsTotal)
             throw new InsufficientCreditsException();
         credit.DeductTailoring();
@@ -49,7 +49,7 @@ public sealed class CreditService : ICreditService
 
     public async Task DeductAnalysisCreditAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         if (credit.AnalysisCreditsTotal != -1 && credit.AnalysisCreditsUsed >= credit.AnalysisCreditsTotal)
             throw new InsufficientCreditsException();
         credit.DeductAnalysis();
@@ -57,13 +57,13 @@ public sealed class CreditService : ICreditService
 
     public async Task DeductAutofillCreditAsync(int userId, CancellationToken cancellationToken)
     {
-        var credit = await GetCreditAsync(userId, cancellationToken);
+        var credit = await GetOrCreateCreditAsync(userId, cancellationToken);
         if (credit.AutofillCreditsTotal != -1 && credit.AutofillCreditsUsed >= credit.AutofillCreditsTotal)
             throw new InsufficientCreditsException();
         credit.DeductAutofill();
     }
 
-    private async Task<UserCredit> GetCreditAsync(int userId, CancellationToken cancellationToken)
+    public async Task<UserCredit> GetOrCreateCreditAsync(int userId, CancellationToken cancellationToken)
     {
         var credit = await _dbContext.UserCredit
             .FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
